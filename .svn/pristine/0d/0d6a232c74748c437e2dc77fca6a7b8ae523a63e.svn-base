@@ -1,0 +1,39 @@
+#ifndef _CHARACTER_H
+#define _CHARACTER_H
+
+#include "character.h"
+
+enum CmdType {
+	ATK_MELEE,
+	ATK_PROJECTILE,
+	ATK_MAG 
+}
+
+struct BattleCommand {
+BattleCommand(string n, CmdType i, int dmg, int c, int d) : name(n), type(i), baseDamage(dmg), cost(c), delay(d) {}
+	string name;
+	CmdType type;
+	int baseDamage;
+	int cost;
+	int delay;
+}
+
+class CombatChar : public Character {
+ public:
+	CombatChar(Character& character)
+	bool ATBisFull() {
+		if (atb == 100) return true;
+	}
+	
+
+ protected:
+ 
+
+ private:
+	unsigned int atb;
+	unsigned int currentHP = getStatEff(0);
+};
+	
+
+
+#endif

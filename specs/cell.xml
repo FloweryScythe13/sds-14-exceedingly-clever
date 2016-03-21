@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE spec SYSTEM "http://www.cs.stolaf.edu/lib/SpecML/SpecML.dtd">
+<?xml-stylesheet
+   href="http://www.cs.stolaf.edu/lib/SpecML/SpecMLToHTML.xsl"
+   type="text/xsl"?>
+
+<spec>
+<title>Cell</title>
+<header>Spec for Cell class</header>
+<credits></credits>
+
+<class name="Cell">
+
+<nosuperclass/>
+
+<variables>
+<var name="width" type="int">The width of the Cell in tiles</var>
+<var name="height" type="int">The height of the Cell in tiles</var>
+<var name="tiles" type="unsigned short int[][][]">The tile data stored in ints for each layer, column and row</var>
+<var name="solids" type="int[][]">The collision flags for each tile (column, row)</var>
+<var name="ptile" type="Tilesheet*">The Tilesheet to use when drawing</var>
+<var name="directory" type="std::string">The directory of the files containing the Cell information</var>
+<var name="name" type="std::string">The name of the Cell</var>
+<var name="npcs" type="NPC*[][]">An array of NPCs located at each tile</var>
+<var name="warps" type="Warp*[][]">An array of Warps located at each tile</var>
+<var name="battleEnemies" type="std::vector&lt;Character*&gt;">A list of possible enemy encounters in the Cell</var>
+</variables>
+
+<constructors-list>
+
+<constructor>
+<desc>Constructor from a directory</desc>
+<arguments>
+<arg name="directory" type="std::string">The directory containing the information necessary to load the Cell</arg>
+</arguments>
+<statechange>All values are initialized to 0. If possible, the files "map.txt", "area.txt", "npc.txt", "warp.txt" and "enemies.txt" are opened to allocate memory for the NPCs, Warps and battleEnemies. The tiles array is filled reading information for each layer, column and row up to the width and height of the level (similarly, solids are loaded).</statechange>
+</constructor>
+
+</constructors-list>
+
+<destructor>
+<desc>Destructor</desc>
+<statechange>Deletes all dynamically allocated memory (ptile, npcs, warps, battleEnemies)</statechange>
+</destructor>
+
+<methods-list>
+
+<method name="getWidth/Height" returntype="int">
+<desc>Returns the width/height of the cell</desc>
+<noarguments/>
+<statechange>None</statechange>
+<return>The width/height</return>
+</method>
+
+<method name="getNPC/Warp" returntype="NPC*/Warp*">
+<desc>Returns the NPC/Warp (if any) located at the given tile location</desc>
+<arguments>
+<arg name="tilex" type="int">The x location (in tiles)</arg>
+<arg name="tiley" type="int">The y location (in tiles)</arg>
+</arguments>
+<statechange>None</statechange>
+<return>The element in npcs/warps at the index [tiley][tilex]</return>
+</method>
+
+<method name="getEnemies" returntype="std::vector&lt;Character*&gt;&amp;">
+<desc>Returns a reference to the list of encountered enemies</desc>
+<noarguments/>
+<statechange>None (unless changes are made to the referenced variable)</statechange>
+<return>A reference to battleEnemies</return>
+</method>
+
+<method name="getCollision" returntype="int">
+<desc>Returns a flag for collision at the specified tile location</desc>
+<arguments>
+<arg name="tilex" type="int">The x location (in tiles)</arg>
+<arg name="tiley" type="int">The y location (in tiles)</arg>
+</arguments>
+<statechange>None</statechange>
+<return>solids[tiley][tilex]</return>
+</method>
+
+<method name="draw" returntype="void">
+<desc>Draws the tiles and NPCs</desc>
+<arguments>
+<arg name="camera" type="const Rect&amp;"></arg>
+</arguments>
+<statechange>None</statechange>
+<return>void</return>
+</method>
+
+</methods-list>
+
+</class>
+
+</spec>

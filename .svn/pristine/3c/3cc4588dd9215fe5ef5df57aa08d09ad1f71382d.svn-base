@@ -1,0 +1,9 @@
+#include "character.h"
+
+Character::Character(std::string name) : name(name) {}
+Character::Character(std::string name, const unsigned int stts[], unsigned int xp = 0) : name(name) {
+  for(int i = 0; i < STAT_MAX; ++i) statBase.val[i] = stts[i];
+  totalExp = xp;
+}
+Character::Character(std::string name, const StatList& othername) : name(name), statBase(othername) {}
+Character::~Character() {}

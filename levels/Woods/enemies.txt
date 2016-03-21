@@ -1,0 +1,3 @@
+2
+char/malboro.txt
+char/knight.txt

@@ -1,0 +1,14 @@
+#ifndef _RENDER_H
+#define _RENDER_H
+
+#include "color.h"
+#include "rect.h"
+#include "texture.h"
+
+extern void drawBox(Rect rect, double z = 0.0);
+extern void drawBox(Rect rect, Color c, double z = 0.0);
+
+extern void drawText(float x, float y, float z, const char* text,
+	void* font, Color c);
+
+#endif

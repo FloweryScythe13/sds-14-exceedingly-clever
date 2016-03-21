@@ -1,0 +1,32 @@
+#ifndef _PARTY_H
+#define _PARTY_H
+
+#include <string>
+#include <vector>
+#include "partymember.h"
+
+class Party {
+public:
+	Party();
+	~Party();
+
+	void setMember(int m, PartyMember* c) {member[m] = c;}
+	PartyMember* getMember(int m) {return member[m];}
+	
+	unsigned int getEquipQuantity(unsigned int id) const;
+	unsigned int getEquipQuantity(std::string name) const;
+	void addEquipQuantity(unsigned int id, int count);
+	void addEquipQuantity(std::string name, int count);
+	void setEquipQuantity(unsigned int id, int q);
+	void setEquipQuantity(std::string name, int q);
+
+	static const int MEMBER_COUNT = 2;
+
+protected:
+private:
+	PartyMember* member[MEMBER_COUNT];
+	std::vector<unsigned int> equipList;
+
+};
+
+#endif

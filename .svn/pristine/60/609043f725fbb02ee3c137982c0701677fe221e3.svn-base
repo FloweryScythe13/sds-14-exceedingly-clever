@@ -1,0 +1,62 @@
+#ifndef _EQUIPSCREEN_H
+#define _EQUIPSCREEN_H
+
+#include "equipment.h"
+#include "menuscreen.h"
+
+enum EquipScreenMode {
+	EQUIP_SELECT,
+	EQUIP_EDIT,
+	EQUIP_REMOVE,
+	EQUIP_EDIT_WEAPON,
+	EQUIP_EDIT_HEAD,
+	EQUIP_EDIT_TORSO,
+	EQUIP_EDIT_LEGS,
+	EQUIP_EDIT_ACC1,
+	EQUIP_EDIT_ACC2,
+	EQUIP_EDIT_ACC3,
+	EQUIP_MODE_MAX
+};
+
+class Button;
+class Font;
+class ImageBox;
+class Label;
+class Party;
+class EquipScreen : public MenuScreen {
+public:
+	EquipScreen(Party& party, const Rect& pos = Rect(0, 0, 640, 480),
+		float z = 0.0f, Widget* parent = 0);
+	~EquipScreen();
+	
+	void setCharacter(int id);
+	
+	virtual void draw();
+	virtual void handleInput(InputSystem& input);
+	virtual void resetMode();
+	
+protected:
+private:
+	Party& party;
+	int characterID;
+	
+	const Font* font;
+	int base;
+	
+	EquipScreenMode esmode;
+	
+	Label* charName;
+	Label* primStat;
+	Label* secondStat;
+	
+	Button* equipSelect;
+	Button* removeSelect;
+	Button* slot[SLOT_MAX];
+	
+	Button* test;
+	
+	int equipmentOffset;
+
+};
+
+#endif

@@ -1,0 +1,116 @@
+#include <fstream>
+#include <iostream>
+#include "equipment.h"
+
+std::vector<Equipment> Equipment::_equipList;
+std::vector<unsigned int> Equipment::_sortedEquipList[EQUIP_MAX];
+std::map<std::string, unsigned int> Equipment::_equipNameMap;
+
+const unsigned int emptySlotID[SLOT_MAX] = {
+	1, 2, 3, 4, 5, 5, 5
+};
+
+const EquipType slotEquipType[SLOT_MAX] = {
+	EQUIP_WEAPON, EQUIP_HEAD, EQUIP_TORSO, EQUIP_LEGS,
+	EQUIP_ACC, EQUIP_ACC, EQUIP_ACC
+};
+
+std::string slotName[SLOT_MAX] = {
+	"Weapon", "Head", "Torso", "Legs",
+	"Accessory 1", "Accessory 2", "Accessory 3"
+};
+
+std::string equipTypeName[EQUIP_MAX] = {
+	"None", "Weapon", "Head", "Torso", "Legs", "Accessory"
+};
+std::string weaponTypeName[WEAP_MAX] = {
+	"None", "Dagger", "Missile", "Sword", "Polelance",
+	"Gun", "Staff", "Hammer", "Book", "Grenade"
+};
+
+Equipment::Equipment() {
+  type = EQUIP_BLANK;
+  weaptype = WEAP_NONE;
+  name = "";
+}
+
+Equipment::Equipment(std::ifstream& file) {
+	file >> name;
+	for(unsigned int i = 0; i < name.size(); ++i) {
+		if(name[i] == '_') {
+			name[i] = ' ';
+		}
+	}
+	
+	int temp;
+	file >> temp;
+	type = (EquipType)temp;
+	
+	file >> temp;
+	weaptype = (WeaponType)temp;
+	
+	statBonus = StatList(file);
+	statMod = StatList(file);
+}
+
+Equipment::Equipment(EquipType i, WeaponType j, std::string name, 
+ StatList bon, StatList mds) : type(i), weaptype(j), name(name),
+	    statBonus(bon), statMod(mds) {};
+
+EquipSlot::EquipSlot() : equip(0) {
+  type = EQUIP_BLANK;
+}
+
+EquipSlot::EquipSlot(EquipType t, unsigned int equip) : type(t), equip(equip) {}
+
+void Equipment::print() const {
+	std::cout << name << '\n';
+	std::cout << (int)type << '\t';
+	std::cout << (int)weaptype << '\n';
+	statBonus.print();
+	statMod.print();
+	std::cout << '\n';
+}
+
+void Equipment::loadEquipmentList(std::string filename) {
+	Equipment empty;
+	
+	for(int i = 0; i < EQUIP_MAX; ++i) {
+		empty.setName(std::string("No ") + equipTypeName[i]);
+		empty.setType((EquipType)i);
+		_equipList.push_back(empty);
+		_equipNameMap[empty.getName()] = _equipList.size() - 1;
+		_sortedEquipList[(EquipType)i].push_back(_equipList.size() - 1);
+	}
+	
+	std::ifstream file(filename);
+	if(!file.is_open()) return;
+	if(file.eof()) {
+		file.close();
+		return;
+	}
+	
+	int n;
+	file >> n;
+	for(int i = 0; i < n; ++i) {
+		Equipment e(file);
+		_equipList.push_back(e);
+		_equipNameMap[e.getName()] = _equipList.size() - 1;
+		_sortedEquipList[e.getType()].push_back(_equipList.size() - 1);
+	}
+	
+	file.close();
+}
+
+Equipment Equipment::equipFromID(unsigned int id) {
+	if(id > _equipList.size()) return _equipList[0];
+	return _equipList[id];
+}
+
+unsigned int Equipment::idFromName(std::string name) {
+	return _equipNameMap[name];
+}
+
+Equipment Equipment::equipFromName(std::string name) {
+	return _equipList[_equipNameMap[name]];
+}

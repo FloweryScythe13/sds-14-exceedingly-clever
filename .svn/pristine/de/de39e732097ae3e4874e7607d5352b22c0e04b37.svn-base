@@ -1,0 +1,49 @@
+#include "inputsystem.h"
+#include "mainmenustate.h"
+#include "render.h"
+
+MainMenuState::MainMenuState(InputSystem& input) : GameState(input) {
+  Rect region1 = {10, 10, 180, 25};
+  int unselectTexture = loadTexture("images/unselected.pam");
+  int selectTexture = loadTexture("images/selected.pam");
+  currentSelection = 0; 
+  for(int i = 0; i < OPTION_COUNT; ++i) {
+    options[i] = new MenuOptionWidget(region1, unselectTexture, selectTexture);} 
+  optionMap[0]=MenuOptionMap(0,0,0,0);
+  
+  finished = false;
+}
+
+MainMenuState::~MainMenuState() {
+  for(int i = 0; i < OPTION_COUNT; ++i) delete options[i]; 
+}
+
+void MainMenuState::onOpen() {}
+
+void MainMenuState::onClose() {}
+
+void MainMenuState::onFrame() {
+  //Logic for selection
+  int nextSelection = currentSelection; 
+  if (input.checkKeyState("up", KEYSTATE_TAP)) {
+      nextSelection = optionMap[currentSelection].up;
+  }
+  if (input.checkKeyState("down", KEYSTATE_TAP)) {
+      nextSelection = optionMap[currentSelection].down;
+  }
+  if (input.checkKeyState("left", KEYSTATE_TAP)) {
+      nextSelection = optionMap[currentSelection].left;
+  }
+  if (input.checkKeyState("right", KEYSTATE_TAP)) {
+      nextSelection = optionMap[currentSelection].right;
+  }
+  if(nextSelection != -1) {
+    options[currentSelection]->unselect();
+    currentSelection = nextSelection;
+    options[currentSelection]->select();
+  }
+  for(int i = 0; i < OPTION_COUNT; ++i) {
+    options[i]->draw();
+  }
+    
+}

@@ -1,0 +1,58 @@
+#ifndef _CHARACTER_H
+#define _CHARACTER_H
+
+#include <string>
+#include "stats.h"
+
+
+class Character {
+public:
+	Character(std::string name);
+
+	~Character();
+	
+	std::string getName() const {return name;}
+	void setName(std::string n) {name = n;}
+	
+	
+
+	void getStatBase(unsigned int i) {return statBase.val[i];}
+	void getStatRaise(unsigned int i) {return statRaise[i];}
+	void getStatBonus(unsigned int i) {return statBonus.val[i];}
+	void getStatMod(unsigned int i) {return statMod.val[i];}
+	
+	void setStatRaise(unsigned int index, int j) {statRaise[index] = j;}
+	void updateEffStats() {}
+	void setLevel(unsigned int val) {level = val;}
+	unsigned int getLevel() const {return level;}
+
+	void addTotalExp(unsigned int val) {totalExp +=  val;}
+	void setTotalExp(unsigned int val) {totalExp = val;}
+	unsigned int getTotalExp() const {return totalExp;}
+
+	void addFreeExp(unsigned int val) {freeExp += val;}
+	void subFreeExp(unsigned int val) {freeExp -= val;}
+	void setFreeExp(unsigned int val) {freeExp = val;}
+	unsigned int getFreeExp() const {return freeExp;}
+
+protected:
+	std::string name;
+	unsigned int level;
+	unsigned int totalExp;
+	unsigned int freeExp;
+	StatList statBase;
+	int statRaise[PRIM_STAT_COUNT];
+	StatList statBonus;
+	StatList statMod;
+	StatList statEff;
+
+	const int AVERAGE_VAL = 3;
+	const int AVERAGE_MAGVAL = 1;
+	//Abilities
+	//Inventory
+	
+private:
+
+};
+
+#endif

@@ -1,0 +1,26 @@
+#ifndef _MAINMENUSTATE_H
+#define _MAINMENUSTATE_H
+
+#include "gamestate.h"
+#include "menuoptionwidget.h"
+
+class InputSystem;
+class MainMenuState : public GameState {
+public:
+	MainMenuState(InputSystem& input);
+	~MainMenuState();
+	
+	void onOpen();
+	void onClose();
+	void onFrame();
+	
+protected:
+private:
+	static const int OPTION_COUNT = 5;
+
+	MenuOptionWidget options[OPTION_COUNT];
+	MenuOptionMap optionMap[OPTION_COUNT];
+
+};
+
+#endif

@@ -1,0 +1,23 @@
+#ifndef _MENUOPTIONWIDGET_H
+#define _MENUOPTIONWIDGET_H
+
+#include "widget.h"
+
+class MenuOptionWidget : public Widget {
+public:
+	MenuOptionWidget(const Rect& region, int offTexture, int onTexture,
+		Widget* parent = 0);
+	~MenuOptionWidget();
+	
+	bool isSelected() const {return texture == selectedTexture;}
+	
+	void select();
+	void unselect();
+
+protected:
+private:
+	int unselectedTexture, selectedTexture;
+
+};
+
+#endif

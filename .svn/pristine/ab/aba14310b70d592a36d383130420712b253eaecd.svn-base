@@ -1,0 +1,79 @@
+#ifndef _BATTLESTATE_H
+#define _BATTLESTATE_H
+
+#include <vector>
+#include "gamestate.h"
+#include "rect.h"
+
+enum BattleMode {
+	BATTLE_IDLE,
+	BATTLE_COMMAND,
+	BATTLE_TARGET,
+	BATTLE_MAX
+};
+
+class Button;
+class CombatChar;
+class ImageBox;
+class InputSystem;
+class Label;
+class Party;
+class Widget;
+class Rect;
+class BattleState : public GameState {
+public:
+	BattleState(InputSystem& input, Party& party,
+		CombatChar** e, int numEnem);
+	virtual ~BattleState();
+	
+	void onOpen();
+	void onClose();
+	void onFrame();
+
+	void update();
+
+	void openPlayerCommand(int id);
+	void openTarget();
+	void openIdle();
+	void closePlayerCommand();
+	void closeTarget();
+
+protected:
+private:
+	Party& party;
+
+	bool isPaused;
+	int counter;
+	int rate;
+	BattleMode mode;
+
+	std::vector<CombatChar*> player;
+	std::vector<CombatChar*> enemies;
+
+	//Widget stuff
+	int background;
+	Widget* sprites;
+	Button* activeButton;
+	int activeCharacter;
+	int activeCommand;
+	CombatChar* activeTarget;
+
+	Widget* mainGUI;
+	ImageBox* commandBox;
+	ImageBox* targetBox;
+ 
+	Button* commandButton[2];
+	Button* targetButton[4];
+	Button* combatant[2];
+	Label* playerNameDisplay;
+	Label* playerHPDisplay;
+	Rect atbBar[2];
+	Rect sprite1Pos;
+	Rect sprite2Pos;
+	Rect enemy1Pos;
+	Rect enemy2Pos;
+	Rect enemy3Pos;
+	Rect enemy4Pos;
+};
+
+#endif

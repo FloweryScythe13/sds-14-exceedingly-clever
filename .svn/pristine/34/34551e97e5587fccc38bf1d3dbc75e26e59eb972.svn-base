@@ -1,0 +1,18 @@
+#include "npc.h"
+
+NPC::NPC(string filename) {
+  ifstream file(filename);
+  if(!file.is_open()) return;
+  readFromFile(file);
+  int temp;
+  file >> temp;
+  file.get();
+  for(int i = 0; i < temp; i++) {
+    string text;
+    getline(file,text);
+    dialogue.push_back(text);  
+  }
+  file.close();
+  position = Rect(96,96,32,32);
+  playerAdjac = 0;
+}

@@ -1,0 +1,24 @@
+#include<iostream>
+using namespace std;
+#include "equipment.h"
+
+Equipment::Equipment() {
+  type = EQUIP_BLANK;
+  weaptype = WEAP_NONE;
+  name = "";
+}
+
+Equipment::Equipment(EquipType i, WeaponType j, string thingname, 
+ StatList bon, StatList mds) : type(i), weaptype(j), name(thingname),
+	    statBonus(bon), statMod(mds) {};
+
+EquipSlot::EquipSlot() {
+  type = EQUIP_BLANK;
+}
+
+EquipSlot::EquipSlot(EquipType t, Equipment blah) {
+  type = t;
+  equip = blah;
+}
+
+  

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE spec SYSTEM "http://www.cs.stolaf.edu/lib/SpecML/SpecML.dtd">
+<?xml-stylesheet
+   href="http://www.cs.stolaf.edu/lib/SpecML/SpecMLToHTML.xsl"
+   type="text/xsl"?>
+
+<spec>
+<title>BattleState</title>
+<header>Spec for the BattleState class</header>
+<credits></credits>
+
+<class name="BattleState">
+
+<superclass name="GameState"></superclass>
+
+<variables>
+<var name="party" type="Party&amp;">A reference to the player's party</var>
+<var name="isPaused" type="bool">Whether the battle is paused</var>
+<var name="victory" type="BattleVictory">Flag for the victory state of battle</var>
+<var name="counter" type="int">A counter for tracking the time in battle</var>
+<var name="rate" type="int">A rate controlling how often battle logic is performed</var>
+<var name="mode" type="BattleMode">A flag for what mode of battle is currently active</var>
+<var name="player" type="std::vector&lt;CombatChar*&gt;">A list of player characters</var>
+<var name="enemies" type="std::vector&lt;CombatChar*&gt;">A list of enemy characters</var>
+<var name="alivePlayer" type="std::vector&lt;unsigned int&gt;">A list of indices of alive players</var>
+<var name="aliveEnemies" type="std::vector&lt;unsigned int&gt;">A list of indices of alive enemies</var>
+<var name="background" type="int">The texture to draw in the background</var>
+<var name="labelTex" type="int">The texture to draw for labels</var>
+<var name="buttonOn" type="int">The texture to draw for selected buttons</var>
+<var name="buttonOff" type="int">The texture to draw for unselected buttons</var>
+<var name="boxTex" type="int">The texture to draw for plain boxes</var>
+<var name="font" type="const Font*">Font to use for text</var>
+<var name="white" type="Color">Color to use for text</var>
+<var name="activeButton" type="Button*">Button currently being selected</var>
+<var name="activeCharacter" type="unsigned int">Character currently selecting commands/targets</var>
+<var name="activeCommand" type="unsigned int">Command which is selected for targeting</var>
+<var name="activeTarget" type="CombatChar*">Character to be targeted by a command</var>
+<var name="turnQueue" type="std::vector&lt;unsigned int&gt;">A stack of player characters who are ready to act</var>
+<var name="mainGUI" type="Widget*">The main GUI widget</var>
+<var name="commandBox" type="ImageBox*">A box holding the commands</var>
+<var name="targetBox" type="ImageBox*"></var><var name="" type="">A box holding the enemies</var>
+<var name="commandButton" type="std::vector&lt;Button*&gt;">A list of buttons per command</var>
+<var name="targetButton" type="std::vector&lt;Button*&gt;">A list of buttons per enemy</var>
+<var name="atbBar" type="std::vector&lt;Rect&gt;">The rectangle to draw to represent the ATB gauge for each player character</var>
+<var name="playerNameDisplay" type="Label*">A label displaying the names of each player character</var>
+<var name="playerHPDisplay" type="Label*">A label displaying the HP of each player character</var>
+<var name="playerSpritePos" type="std::vector&lt;Rect&gt;">The position of the player characters</var>
+<var name="enemySpritePos" type="std::vector&lt;Rect&gt;">The position of the enemy characters</var>
+</variables>
+
+<constructors-list>
+
+<constructor>
+<desc>Standard constructor</desc>
+<arguments>
+<arg name="input" type="InputSystem&amp;">A reference to the input system</arg>
+<arg name="party" type="Party&amp;">A reference to the player's party</arg>
+<arg name="e" type="CombatChar**">An array of enemies to battle in combat</arg>
+<arg name="numEnem" type="int">The number of enemies in combat</arg>
+</arguments>
+<statechange>Initializesthe party and enemy parties, constructing a CombatChar for each player character in the party. Also constructs all of the widgets.</statechange>
+</constructor>
+
+</constructors-list>
+
+<destructor>
+<desc>Destructor</desc>
+<statechange>Deletes the enemy characters and all widgets.</statechange>
+</destructor>
+
+<methods-list>
+
+<method name="onOpen" returntype="void">
+<desc>Called when the BattleState first begins.</desc>
+<noarguments/>
+<statechange>running and finished are set to true, and isPaused is set to false.</statechange>
+<return>void</return>
+</method>
+
+<method name="onClose" returntype="void">
+<desc>Called when the BattleState is finished.</desc>
+<noarguments/>
+<statechange>nextState is set to 0.</statechange>
+<return>void</return>
+</method>
+
+<method name="onFrame" returntype="void">
+<desc>Is called each frame and performs all necessary logic for battle.</desc>
+<noarguments/>
+<statechange>A counter is continuously incremented until it surpasses the rate, upon which logic is performed dependent on the mode. Every frame, the widgets are reconstructed if necessary, player statistics are recalculated and changed, textures are drawn to the screen and victory conditions are checked. See source (too complicated to list all state changes).</statechange>
+<return>void</return>
+</method>
+
+<method name="checkDeaths" returntype="void">
+<desc>Checks if any characters in combat have died</desc>
+<noarguments/>
+<statechange>alivePlayer and aliveEnemies are updated to hold indexes of only the characters whose currentHP are greater than 0.</statechange>
+<return>void</return>
+</method>
+
+<method name="updateText" returntype="void">
+<desc>Updates the text of every button and label dependent on character-specific information.</desc>
+<noarguments/>
+<statechange>playerNameDisplay, playerHPDisplay and every targetButton have their texts changed to the appropriate values.</statechange>
+<return>void</return>
+</method>
+
+<method name="openPlayerCommand" returntype="void">
+<desc>Displays the buttons for available commands for the active player.</desc>
+<arguments>
+<arg name="id" type="int">The index of the player to use for the command information.</arg>
+</arguments>
+<statechange>The mode is changed to BATTLE_COMMAND and the activeCharacter is set to id. The commandButton vector is cleared and new buttons are constructed for each command available to the active character.</statechange>
+<return>void</return>
+</method>
+
+<method name="openTarget" returntype="void">
+<desc>Displays the buttons for available targets (enemies)</desc>
+<noarguments/>
+<statechange>The mode is changed to BATTLE_TARGET and each of the targetButtons have their DIR_CANCEL direction point to the current button.</statechange>
+<return>void</return>
+</method>
+
+<method name="openIdle" returntype="void">
+<desc>Hides the GUI elements for the commands and targets.</desc>
+<noarguments/>
+<statechange>The mode is changed to BATTLE_IDLE, the activeButton is set to 0, the battle is unpaused, and the command and target boxes are hidden.</statechange>
+<return>void</return>
+</method>
+
+<method name="closePlayerCommand" returntype="void">
+<desc>Hides the buttons for the commands</desc>
+<noarguments/>
+<statechange>The mode is set to BATTLE_IDLE and the commandBox is hidden.</statechange>
+<return>void</return>
+</method>
+
+<method name="closeTarget" returntype="void">
+<desc>Hides the buttons for the targets</desc>
+<noarguments/>
+<statechange>The mode is set to BATTLE_COMMAND and the targetBox is hidden.</statechange>
+<return>void</return>
+</method>
+
+</methods-list>
+
+</class>
+
+</spec>

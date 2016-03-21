@@ -1,0 +1,72 @@
+Knight
+400
+8
+20
+20
+15
+20
+5
+5
+5
+0
+0
+images/knight.pam
+images/knight.pam
+images/lightningportrait.pam
+8
+walk_down
+32 32
+4 3
+1
+8
+3
+0 1 2
+walk_left
+32 32
+4 3
+1
+8
+3
+3 4 5
+walk_right
+32 32
+4 3
+1
+8
+3
+6 7 8
+walk_up
+32 32
+4 3
+1
+8
+3
+9 10 11
+idle_down
+32 32
+4 3
+0
+8
+1
+1
+idle_left
+32 32
+4 3
+0
+8
+1
+4
+idle_right
+32 32
+4 3
+0
+8
+1
+7
+idle_up
+32 32
+4 3
+0
+8
+1
+10

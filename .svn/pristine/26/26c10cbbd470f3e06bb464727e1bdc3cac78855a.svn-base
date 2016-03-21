@@ -1,0 +1,47 @@
+#ifndef _BATTLESTATE_H
+#define _BATTLESTATE_H
+
+#include <vector>
+#include "gamestate.h"
+
+class Button;
+class CombatChar;
+class ImageBox;
+class InputSystem;
+class Label;
+class Party;
+class Widget;
+class BattleState : public GameState {
+public:
+	BattleState(InputSystem& input, Party& party,
+		CombatChar* e, int numEnem);
+	virtual ~BattleState();
+	
+	void onOpen();
+	void onClose();
+	void onFrame();
+
+protected:
+private:
+	Party& party;
+
+	bool isPaused;
+	int counter;
+	int rate;
+
+	std::vector<CombatChar*> player;
+	std::vector<CombatChar*> enemies;
+
+	//Widget stuff
+	int background;
+	int labelTex, buttonOn, buttonOff;
+
+	Widget* mainGUI;
+	Widget* commandBox;
+	Widget* targetBox;
+	Button* commandButton[2];
+	Button* targetButton[4];
+	Label* playerNameDisplay[2];
+};
+
+#endif

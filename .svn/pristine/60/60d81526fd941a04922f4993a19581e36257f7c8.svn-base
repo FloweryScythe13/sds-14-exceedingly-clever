@@ -1,0 +1,74 @@
+#ifndef _CHARACTER_H
+#define _CHARACTER_H
+
+#include <string>
+#include "stats.h"
+
+extern const int PRIM_STAT_COUNT;
+
+class Character {
+public:
+	Character(std::string name);
+	Character(std::string name, const unsigned int stats[], unsigned int p);
+	Character(std::string name, const StatList& othername);
+
+	~Character();
+	
+	std::string getName() const {return name;}
+	void setName(std::string n) {name = n;}
+
+	int getStatBase(unsigned int i) {return statBase.val[i];}
+	int getStatRaise(unsigned int i) {return statRaise[i];}
+	int getStatBonus(unsigned int i) {return statBonus.val[i];}
+	int getStatMod(unsigned int i) {return statMod.val[i];}
+	
+	void setStatRaise(unsigned int index, int j) {statRaise[index] = j;}
+	void updateEffStats() {}
+	void setLevel(unsigned int val) {level = val;}
+	unsigned int getLevel() const {return level;}
+
+	void addTotalExp(unsigned int val) {totalExp +=  val;}
+	void setTotalExp(unsigned int val) {totalExp = val;}
+	unsigned int getTotalExp() const {return totalExp;}
+
+	void addFreeExp(unsigned int val) {freeExp += val;}
+	void subFreeExp(unsigned int val) {freeExp -= val;}
+	void setFreeExp(unsigned int val) {freeExp = val;}
+	unsigned int getFreeExp() const {return freeExp;}
+	
+	void displayall() {
+	  cout << name << endl;
+	  cout << level << " " << totalExp << endl;
+	  for( int i = 0; i < STAT_MAX; ++i)
+	    cout << statBase.val[i] << " ";
+	  cout << endl;
+	}
+	void displaycore() {
+	  cout << name << endl;
+	  cout << "Level " << level << " " << totalExp << "EXP" << endl;
+	  for( int i = 0; i < 4; ++i)
+	    cout << statBase.val[i] << " ";
+	  cout << endl;
+	}
+
+protected:
+	std::string name;
+	unsigned int level;
+	unsigned int totalExp;
+	unsigned int freeExp;
+	StatList statBase;
+	int statRaise[4];
+	StatList statBonus;
+	StatList statMod;
+	StatList statEff;
+
+	const int AVERAGE_VAL = 3;
+	const int AVERAGE_MAGVAL = 1;
+	//Abilities
+	//Inventory
+	
+private:
+
+};
+
+#endif

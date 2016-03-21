@@ -1,0 +1,26 @@
+#ifndef _COMBATCHAR_H
+#define _COMBATCHAR_H
+
+#include "character.h"
+
+class CombatChar : public Character {
+  friend class PartyMember;
+ public:
+  CombatChar(Character& character) {
+    atb = 0; currentHP = character.getStatEff(0);}
+  bool ATBisFull() {
+		if (atb == 100) return true;
+	}
+  friend PartyMember
+
+ protected:
+ 
+
+ private:
+	unsigned int atb;
+	unsigned int currentHP = getStatEff(0);
+};
+	
+
+
+#endif

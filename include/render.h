@@ -1,0 +1,25 @@
+#ifndef _RENDER_H
+#define _RENDER_H
+
+#include "color.h"
+#include "font.h"
+#include "rect.h"
+#include "texture.h"
+#include "tiles.h"
+
+extern void drawTexture(int texNum, Rect pos, Rect texcoord,
+	double z = 0.0, double a = 1.0, double rotationAngle = 0.0);
+
+extern void drawTexture(int texNum, Rect pos, double z = 0.0,
+	double a = 1.0, double rotationAngle = 0.0);
+	
+extern void drawTile(int texNum, Rect pos, Rect texcoord, TileOrient orient,
+	double z = 0.0, double a = 1.0);
+	
+extern void drawText(const Font* font, const char* text, Color c,
+	float x, float y, float z = 0.0f, float sx = 1.0f, float sy = 1.0f);
+	
+extern void drawBox(Rect rect, double z = 0.0);
+extern void drawBox(Rect rect, Color c, double z = 0.0);
+
+#endif

@@ -1,0 +1,299 @@
+#include <iostream>
+#include <sstream>
+#include "button.h"
+#include "equipment.h"
+#include "stats.h"
+#include "equipscreen.h"
+#include "imagebox.h"
+#include "inputsystem.h"
+#include "label.h"
+#include "party.h"
+#include "partymember.h"
+#include "render.h"
+
+EquipScreen::EquipScreen(Party& p, const Rect& pos, float z, Widget* parent) :
+	MenuScreen(pos, z, parent), party(p), characterID(0), esmode(EQUIP_SELECT), equipmentOffset(0) {
+	mode = MENU_EQUIPMENT;
+	nextMode = mode;
+
+	font = loadFont("fonts/FFVI.ttf", 32);
+	base = loadTexture("images/menuwtbg.pam");
+	int offTex = loadTexture("images/buttonbase.pam");
+	int onTex = loadTexture("images/buttonselected.pam");
+	
+	Color white;
+	Rect primText		= Rect(210, 30, 140, 100);
+	Rect secondText		= Rect(420, 30, 140, 180);
+	Rect slotText		= Rect(30, 165, 180, 200);
+	
+	std::stringstream stream("");
+	
+	//Text for the character's primary stats
+	for(int i = 0; i < PRIM_STAT_COUNT; ++i)
+		stream << " " << STAT_NAME[i] << ":\n";
+	addChild(new Label(stream.str(), base, white, font, primText, z, this));
+	stream.str("");
+	
+	//Text for the character's secondary stats
+	for(int i = PRIM_STAT_COUNT; i < STAT_MAX; ++i)
+		stream << " " << STAT_NAME[i] << ":\n";
+	addChild(new Label(stream.str(), base, white, font, secondText, z, this));
+	stream.str("");
+	
+	//Text for the character's equipment
+	for(int i = 0; i < SLOT_MAX; ++i)
+		stream << " " << slotName[i] << ":\n";
+	addChild(new Label(stream.str(), base, white, font, slotText, z, this));
+	
+	Rect charNamePos	= Rect(30, 30, 150, 25);
+	Rect primStatPos	= Rect(primText.x + primText.w, primText.y,
+		60, primText.h);
+	Rect secondStatPos	= Rect(secondText.x + secondText.w, secondText.y,
+		50, secondText.h);
+	Rect charSlotPos	= Rect(slotText.x + slotText.w, slotText.y,
+		200, slotText.h / SLOT_MAX);
+	Rect equipSelectPos		= Rect(30, 55, 150, 25);
+	Rect removeSelectPos	= Rect(30, 80, 150, 25);
+	
+	charName	= new Label("", base, white, font, charNamePos, z, this);
+	primStat	= new Label("", base, white, font, primStatPos, z, this);
+	secondStat	= new Label("", base, white, font, secondStatPos, z, this);
+	
+	equipSelect = new Button(offTex, onTex, " Equip", white, font, equipSelectPos, z, this);
+	removeSelect = new Button(offTex, onTex, " Remove", white, font, removeSelectPos, z, this);
+	test = new Button(offTex, onTex, " List of Stuff", white, font, Rect(420, 220, 200, 25),
+		z, this);
+	
+	for(int i = 0; i < SLOT_MAX; ++i) {
+		Rect temp = charSlotPos;
+		temp.y += i * temp.h;
+		slot[i] = new Button(offTex, onTex, "", white, font, temp, z, this);
+	}
+	
+	for(int i = 0; i < SLOT_MAX; ++i) {
+		if(i > SLOT_WEAPON)
+			slot[i]->setNext(DIR_UP, slot[i - 1]);
+		if(i < SLOT_MAX - 1)
+			slot[i]->setNext(DIR_DOWN, slot[i + 1]);
+		slot[i]->setNext(DIR_ACCEPT, test);
+		slot[i]->setNext(DIR_CANCEL, equipSelect);
+	}
+	
+	equipSelect->setNext(DIR_DOWN, removeSelect);
+	equipSelect->setNext(DIR_ACCEPT, slot[0]);
+	removeSelect->setNext(DIR_UP, equipSelect);
+	removeSelect->setNext(DIR_ACCEPT, slot[0]);
+	test->setNext(DIR_CANCEL, slot[0]);
+	test->hide();
+}
+
+EquipScreen::~EquipScreen() {}
+
+void EquipScreen::setCharacter(unsigned int id) {
+	characterID = id;
+	if(id >= party.getMemberCount()) {
+		characterID = 0;
+	}
+	
+	if(id < 0) {
+		characterID = party.getMemberCount() - 1;
+	}
+	
+	PartyMember* character = party.getMember(characterID);
+	character->updateEffStats();
+	
+	std::stringstream stream("");
+	stream << " " << character->getName();
+	charName->setText(stream.str());
+	
+	stream.str("");
+	for(int i = 0; i < PRIM_STAT_COUNT; ++i) {
+		stream << character->getStatEff(i) << '\n';
+	}
+	primStat->setText(stream.str());
+	
+	stream.str("");
+	for(int i = PRIM_STAT_COUNT; i < STAT_MAX; ++i) {
+		stream << character->getStatEff(i) << '\n';
+	}
+	secondStat->setText(stream.str());
+	
+	for(int i = 0; i < SLOT_MAX; ++i) {
+		stream.str("");
+		stream << " " << character->getEquipment((SlotType)i).getName();
+		slot[i]->setText(stream.str());
+	}
+}
+
+void EquipScreen::draw() {
+	if(!visible) return;
+	drawChildren();
+}
+
+void EquipScreen::handleInput(InputSystem& input) {
+	EquipScreenMode nextESMode = esmode;
+	int offsetChange = 0;
+	SlotType selectedSlot = SLOT_WEAPON;
+	PartyMember* character = party.getMember(characterID);
+	bool updateEquipment = false;
+	
+	if(esmode == EQUIP_SELECT) {
+		if(input.checkKeyState("s")) {
+			++characterID;
+			updateEquipment = true;
+		}
+	
+		if(input.checkKeyState("a")) {
+			if(characterID == 0) characterID = party.getMemberCount() - 1;
+			else --characterID;
+			updateEquipment = true;
+		}
+	}
+	
+	if(input.checkKeyState("up")) {
+		move(DIR_UP);
+		offsetChange -= 1;
+	}
+	
+	if(input.checkKeyState("down")) {
+		move(DIR_DOWN);
+		offsetChange += 1;
+	}
+	
+	if(input.checkKeyState("left")) {
+		move(DIR_LEFT);
+	}
+	
+	if(input.checkKeyState("right")) {
+		move(DIR_RIGHT);
+	}
+	
+	if(input.checkKeyState("z")) {
+		for(int i = 0; i < SLOT_MAX; ++i) {
+			if(activeButton == slot[i]) {
+				selectedSlot = (SlotType)i;
+				break;
+			}
+		}
+		switch(esmode) {
+		case EQUIP_SELECT:
+			if(activeButton == equipSelect) {
+				nextESMode = EQUIP_EDIT;
+			}
+			if(activeButton == removeSelect) {
+				nextESMode = EQUIP_REMOVE;
+			}
+			move(DIR_ACCEPT);
+			break;
+		case EQUIP_EDIT:
+			for(int i = 0; i < SLOT_MAX; ++i) {
+				if(activeButton == slot[i]) {
+					nextESMode = (EquipScreenMode)(EQUIP_EDIT_WEAPON + i);
+					break;
+				}
+			}
+			test->show();
+			move(DIR_ACCEPT);
+			break;
+		case EQUIP_REMOVE:
+			character->equipItem(selectedSlot, emptySlotID[selectedSlot]);
+			updateEquipment = true;
+			break;
+		case EQUIP_EDIT_WEAPON:
+			move(DIR_ACCEPT);
+			character->equipItem(SLOT_WEAPON, "Muramasa");
+			updateEquipment = true;
+			break;
+		case EQUIP_EDIT_HEAD:
+			move(DIR_ACCEPT);
+			character->equipItem(SLOT_HEAD, "Genji Helm");
+			updateEquipment = true;
+			break;
+		case EQUIP_EDIT_TORSO:
+			move(DIR_ACCEPT);
+			character->equipItem(SLOT_TORSO, "Genji Armor");
+			updateEquipment = true;
+			break;
+		case EQUIP_EDIT_LEGS:
+			move(DIR_ACCEPT);
+			character->equipItem(SLOT_LEGS, "Hermes Sandals");
+			updateEquipment = true;
+			break;
+		case EQUIP_EDIT_ACC1:
+			move(DIR_ACCEPT);
+			character->equipItem(SLOT_ACC1, "Ribbon");
+			updateEquipment = true;
+			break;
+		case EQUIP_EDIT_ACC2:
+			move(DIR_ACCEPT);
+			character->equipItem(SLOT_ACC2, "Genji Glove");
+			updateEquipment = true;
+			break;
+		case EQUIP_EDIT_ACC3:
+			move(DIR_ACCEPT);
+			character->equipItem(SLOT_ACC3, "Gauntlet");
+			updateEquipment = true;
+			break;
+		default:
+			break;
+		}
+	}
+	
+	if(input.checkKeyState("x")) {
+		move(DIR_CANCEL);
+		switch(esmode) {
+		case EQUIP_SELECT:
+			if(input.checkKeyState("x")) {
+				nextMode = MENU_HOME;
+			}
+			break;
+		case EQUIP_EDIT:
+			nextESMode = EQUIP_SELECT;
+			break;
+		case EQUIP_REMOVE:
+			nextESMode = EQUIP_SELECT;
+			break;
+		case EQUIP_EDIT_WEAPON:
+			nextESMode = EQUIP_EDIT;
+			test->hide();
+			break;
+		case EQUIP_EDIT_HEAD:
+			nextESMode = EQUIP_EDIT;
+			test->hide();
+			break;
+		case EQUIP_EDIT_TORSO:
+			nextESMode = EQUIP_EDIT;
+			test->hide();
+			break;
+		case EQUIP_EDIT_LEGS:
+			nextESMode = EQUIP_EDIT;
+			test->hide();
+			break;
+		case EQUIP_EDIT_ACC1:
+			nextESMode = EQUIP_EDIT;
+			test->hide();
+			break;
+		case EQUIP_EDIT_ACC2:
+			nextESMode = EQUIP_EDIT;
+			test->hide();
+			break;
+		case EQUIP_EDIT_ACC3:
+			nextESMode = EQUIP_EDIT;
+			test->hide();
+			break;
+		default:
+			break;
+		}
+	}
+	
+	esmode = nextESMode;
+	if(updateEquipment) setCharacter(characterID);
+}
+
+void EquipScreen::resetMode() {
+	MenuScreen::resetMode();
+	setCharacter(0);
+	esmode = EQUIP_SELECT;
+	activeButton = equipSelect;
+	activeButton->setSelected(1);
+}

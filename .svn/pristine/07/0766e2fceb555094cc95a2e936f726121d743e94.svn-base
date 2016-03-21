@@ -1,0 +1,56 @@
+#ifndef _EXPLORATIONSTATE_H
+#define _EXPLORATIONSTATE_H
+
+#include <string>
+#include <vector>
+#include "gamestate.h"
+#include "color.h"
+#include "direction.h"
+#include "party.h"
+#include "rect.h"
+#include "label.h"
+#include "font.h"
+
+class Cell;
+class Tilesheet;
+class PartyMember;
+class ExplorationState : public GameState {
+public:
+	ExplorationState(InputSystem& input);
+	~ExplorationState();
+	
+	void onOpen();
+	void onClose();
+	void onFrame();
+	
+	void movePlayer();
+	bool isOnMap(int tilex, int tiley) const;
+	bool getNPCDialogue(CharDirection dir, std::vector<std::string>& text);
+	
+protected:
+private:
+	Rect character, camera;
+	CharDirection characterFacing;
+	int charTileX, charTileY;
+	int targetTileX, targetTileY;
+	bool charIsMoving;
+	bool queueMove;
+	float charSpeed;
+	bool finishedMovement;
+	
+	Cell* level;
+	Tilesheet* tile;
+	unsigned int Stats[STAT_MAX];
+        
+	Party party;
+	PartyMember* ardy;
+	PartyMember* elma;
+	
+	const Font* font;
+	bool inConversation;
+	std::vector<std::string> dialogue;
+	int dialogueScreen;
+	
+};
+
+#endif

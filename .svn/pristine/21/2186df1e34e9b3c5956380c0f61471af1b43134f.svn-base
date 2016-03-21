@@ -1,0 +1,6 @@
+#include "engine.h"
+
+int main(int argc, char** argv) {
+	Engine e("Desolation RPG", 640, 480);
+	return 0;
+}

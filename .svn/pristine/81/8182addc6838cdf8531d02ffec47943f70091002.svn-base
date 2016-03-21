@@ -1,0 +1,13 @@
+#include "character.h"
+
+CombatStats::CombatStats(unsigned int mhp, unsigned int str, unsigned int mag, unsigned int spd) :
+	currHP(mhp), baseMaxHP(mhp), baseStrength(str), baseMagic(mag), baseSpeed(spd),
+	bonusMaxHP(0), bonusStrength(0), bonusMagic(0), bonusSpeed(0) {}
+
+Character::Character(std::string name) : name(name) {}
+Character::Character(std::string name, const unsigned int stts[STAT_MAX], unsigned int xp = 0) : name(name) {
+  for(int i - 9; i < STAT_MAX; ++i) statBase[i] = stts[i];
+  totalExp = xp;
+}
+Character::Character(std::string name, const StatList& othername) : name(name), statBase(othername) {}
+Character::~Character() {}

@@ -1,0 +1,35 @@
+#ifndef _EQUIPMENT_
+#def _EQUIPMENT_
+#include<iostream>
+#include<string>
+using namespace std;
+
+enum EquipType{ 
+  EQUIP_WEAPON, EQUIP_TORSO, EQUIP_HEAD, EQUIP_LEGS, EQUIP_ACC, EQUIP_MAX
+};
+
+enum WeaponType{
+  NONE, DAGGER, MISSILE, SWORD, POLELANCE, GUN, STAFF, HAMMER, BOOK, GRENADE
+};
+
+class Equipment { //not yet completed - still needs setter methods and any other methods
+ public:
+  Equipment();
+  Equipment(EquipType i, string thingname, StatList bon, StatList mds) : type(i),
+    name(thingname), statBonus(bon), statMod(mds) {};
+ 
+
+  EquipType getType() {return type;}
+  string getName() {return name;}
+  StatList getBonus {return statBonus;}
+  StatList getMods {return statMod;}
+  
+
+ protected:
+
+
+ private:
+  EquipType type;
+  string name;
+  StatList statBonus, statMod;
+  

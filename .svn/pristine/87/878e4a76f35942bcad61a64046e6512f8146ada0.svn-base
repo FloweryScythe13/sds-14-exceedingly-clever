@@ -1,0 +1,81 @@
+#include <iostream>
+#include "inputsystem.h"
+#include "mainmenustate.h"
+#include "render.h"
+
+MainMenuState::MainMenuState(InputSystem& input) : GameState(input) {
+	background = loadTexture("images/menubackground.pam");
+	currentSelection = 0; 
+	
+	int unselectTexture = loadTexture("images/unselected.pam");
+	int selectTexture = loadTexture("images/selected.pam");
+	
+	options[0] = new MenuOptionWidget({10, 10, 180, 25},
+		unselectTexture, selectTexture);
+	optionMap[0] = MenuOptionMap(2, 1, -1, -1);
+	
+	options[1] = new MenuOptionWidget({10, 50, 180, 25},
+		unselectTexture, selectTexture);
+	optionMap[1] = MenuOptionMap(0, 2, -1, -1);
+	
+	options[2] = new MenuOptionWidget({10, 90, 180, 25},
+		unselectTexture, selectTexture);
+	optionMap[2] = MenuOptionMap(1, 0, -1, -1);
+	
+	finished = false;
+}
+
+MainMenuState::~MainMenuState() {
+	for(int i = 0; i < OPTION_COUNT; ++i) delete options[i]; 
+}
+
+void MainMenuState::onOpen() {
+	running = true;
+	finished = true;
+}
+
+void MainMenuState::onClose() {
+	nextState = 0;
+}
+
+void MainMenuState::onFrame() {
+	if(input.checkKeyState("x", KEYSTATE_TAP)) {
+		std::cout << "Switching to exploration\n";
+		running = false;
+	}
+
+	if(input.checkKeyState("z", KEYSTATE_TAP)) {
+		for(int i = 0; i < OPTION_COUNT; ++i)
+			options[i]->toggleVisible();
+	}
+
+	//Logic for selection
+	int nextSelection = currentSelection; 
+	if (input.checkKeyState("up", KEYSTATE_TAP)) {
+			nextSelection = optionMap[currentSelection].up;
+	}
+	
+	if (input.checkKeyState("down", KEYSTATE_TAP)) {
+			nextSelection = optionMap[currentSelection].down;
+	}
+	
+	if (input.checkKeyState("left", KEYSTATE_TAP)) {
+			nextSelection = optionMap[currentSelection].left;
+	}
+	
+	if (input.checkKeyState("right", KEYSTATE_TAP)) {
+			nextSelection = optionMap[currentSelection].right;
+	}
+	
+	if(nextSelection != -1) {
+		options[currentSelection]->unselect();
+		currentSelection = nextSelection;
+		options[currentSelection]->select();
+	}
+	
+	drawTexture(background, {0, 0, 640, 480}, {0, 0, 640, 480}, 10);
+	for(int i = 0; i < OPTION_COUNT; ++i) {
+		options[i]->draw();
+	}
+		
+}

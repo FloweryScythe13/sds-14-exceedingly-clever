@@ -1,0 +1,95 @@
+#ifndef _BATTLESTATE_H
+#define _BATTLESTATE_H
+
+#include <vector>
+#include "color.h"
+#include "gamestate.h"
+#include "rect.h"
+
+enum BattleMode {
+	BATTLE_IDLE,
+	BATTLE_COMMAND,
+	BATTLE_TARGET,
+	BATTLE_MAX
+};
+
+enum BattleVictory {
+	VICTORY_NONE,
+	VICTORY_PLAYER,
+	VICTORY_ENEMY
+};
+
+class Button;
+class CombatChar;
+class Font;
+class ImageBox;
+class InputSystem;
+class Label;
+class Party;
+class Widget;
+class BattleState : public GameState {
+public:
+	BattleState(InputSystem& input, Party& party,
+		CombatChar** e, int numEnem);
+	virtual ~BattleState();
+	
+	void onOpen();
+	void onClose();
+	void onFrame();
+
+	void checkDeaths();
+	void updateText();
+
+	void openPlayerCommand(int id);
+	void openTarget();
+	void openIdle();
+	void closePlayerCommand();
+	void closeTarget();
+
+protected:
+private:
+	Party& party;
+
+	bool isPaused;
+	BattleVictory victory;
+	int counter;
+	int rate;
+	BattleMode mode;
+
+	std::vector<CombatChar*> player;
+	std::vector<CombatChar*> enemies;
+	std::vector<unsigned int> alivePlayer;
+	std::vector<unsigned int> aliveEnemies;
+
+	//Widget stuff
+	int background;
+	int labelTex;
+	int buttonOn, buttonOff;
+	int boxTex;
+	const Font* font;
+	Color white;
+	
+	Widget* sprites;
+	Button* activeButton;
+	unsigned int activeCharacter;
+	unsigned int activeCommand;
+	CombatChar* activeTarget;
+
+	std::vector<unsigned int> turnQueue;
+
+	Widget* mainGUI;
+	ImageBox* commandBox;
+	ImageBox* targetBox;
+ 
+	std::vector<Button*> commandButton;
+	std::vector<Button*> targetButton;
+	std::vector<Rect> atbBar;
+
+	Label* playerNameDisplay;
+	Label* playerHPDisplay;
+
+	std::vector<Rect> playerSpritePos;
+	std::vector<Rect> enemySpritePos;
+};
+
+#endif

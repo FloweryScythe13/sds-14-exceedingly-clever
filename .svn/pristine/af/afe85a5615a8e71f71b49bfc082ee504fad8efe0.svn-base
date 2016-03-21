@@ -1,0 +1,24 @@
+#ifndef _COMBATCHAR_H
+#define _COMBATCHAR_H
+
+#include "character.h"
+
+class CombatChar : public Character {
+ public:
+	CombatChar(Character& character)
+	bool ATBisFull() {
+		if (atb == 100) return true;
+	}
+	
+
+ protected:
+ 
+
+ private:
+	unsigned int atb;
+	unsigned int currentHP = getStatEff(0);
+};
+	
+
+
+#endif

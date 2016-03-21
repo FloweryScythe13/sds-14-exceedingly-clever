@@ -1,0 +1,149 @@
+#include <iostream>
+#include <sstream>
+using namespace std;
+#include "battlestate.h"
+#include "button.h"
+#include "combatchar.h"
+#include "direction.h"
+#include "imagebox.h"
+#include "inputsystem.h"
+#include "label.h"
+#include "party.h"
+#include "render.h"
+#include "widget.h"
+#include "rect.h"
+
+BattleState::BattleState(InputSystem& input, Party& party, CombatChar** e,
+	int numEnem) :	GameState(input), party(party) {
+
+	finished = true;
+	counter = 0;	
+	rate = 60;
+	isPaused = false;
+	mode = BATTLE_IDLE;
+
+	background = loadTexture("images/beach.pam"); 
+	int labelTex = loadTexture("images/blank.pam");
+	int buttonOn = loadTexture("images/buttonselected.pam");
+	int buttonOff = loadTexture("images/buttonbase.pam");
+	int boxTex = loadTexture("images/blank.pam");
+	const Font* font = loadFont("fonts/FFVI.ttf", 32);
+
+	//Logic for initializing the combat parties
+	for(int i = 0; i < Party::MEMBER_COUNT; ++i) {
+		player.push_back(new CombatChar(*party.getMember(i)));
+	}
+
+	for(int i = 0; i < numEnem; ++i) {
+		enemies.push_back(e[i]);
+	}
+
+	//Widget creation
+	Color white;
+	Rect pos(0.0f, 320.0f, 640.0f, 480.0f);
+	mainGUI = new Widget(pos, 0.0f);
+	
+	Rect commandBoxPos(120.0f, 0.0f, 120.0f, 160.0f);
+	commandBox = new ImageBox(boxTex, commandBoxPos, 0.0f, mainGUI);
+	for(int i = 0; i < 2; ++i) {
+		Rect temp(0.0f, i * 25.0f, 120.0f, 25.0f);
+		commandButton[i] = new Button(buttonOff, buttonOn, "Test",
+			white, font, temp, 0.0f, commandBox);
+	}
+
+	Rect targetBoxPos(240.0f, 0.f, 120.0f, 160.0f);
+	targetBox = new ImageBox(boxTex, targetBoxPos, 0.0f, mainGUI);
+	for(int i = 0; i < 4; ++i) {
+		Rect temp(0.0f, i * 25.0f, 120.0f, 25.0f);
+		targetButton[i] = new Button(buttonOff, buttonOn, "Test",
+			white, font, temp, 0.0f, commandBox);
+	}
+
+	std::stringstream buf("");
+	buf << " " << player[0]->getName() << "\n";
+	buf << " " << player[1]->getName();
+	
+	Rect namePos(0.0f, 0.0f, 120.0f, 160.f);
+	playerNameDisplay = new Label(buf.str(), labelTex,
+		white, font, namePos, 0.0f, mainGUI);
+
+	buf.str("");
+	buf << " " << player[0]->getCurrentHP() << "\n";
+	buf << " " << player[1]->getCurrentHP();
+
+	Rect hpPos(360.0f, 0.0f, 120.0f, 160.0f);
+	playerHPDisplay = new Label(buf.str(), labelTex,
+		white, font, hpPos, 0.0f, mainGUI);
+
+	commandBox->hide();
+	targetBox->hide();
+	atbbar1 = Rect(80,0,0,25);
+	atbbar2 = Rect(80,25,0,25);
+}
+
+BattleState::~BattleState() {
+	delete mainGUI;
+	for(unsigned int i = 0; i < player.size(); ++i) {
+		delete player[i];
+	}
+
+	for(unsigned int i = 0; i < enemies.size(); ++i) {
+		delete enemies[i];
+	}
+}
+
+void BattleState::onOpen() {
+	running = true;
+	finished = true;
+	isPaused = false;
+}
+
+void BattleState::onClose() {
+	nextState = 0;
+}
+
+void BattleState::onFrame() {
+	//Note: the below key input is for testing purposes. For functional gameplay, this guard should check the status of the bool combatCompleted variable 
+	
+	if(input.checkKeyState("e")) {
+		std::cout << "Switching to exploration\n";
+		running = false;
+	}
+
+	if(!isPaused && ++counter >= rate) {
+		counter = 0;
+		// Anything to be done every twenty frames
+		for(unsigned int i = 0; i < player.size(); ++i) {
+			player[i]->updateATB();
+		}
+
+		for(unsigned int i = 0; i < enemies.size(); ++i) {
+			enemies[i]->updateATB();
+			if(enemies[i]->checkATB()) {
+				//Enemy is ready for action
+				int cmd = rand() % 2;
+				int target = rand() % 2;
+				enemies[i]->performCommand(cmd, player[target]);
+			}
+		}
+
+	}
+
+	update();
+	drawTexture(background, {0, 0, 640, 480}, {0, 0, 640, 480}, 10);
+	mainGUI->draw();
+	drawBox(atbbar1, {0, 120, 80, 255}, 0);
+	drawBox(atbbar2, {0, 120, 80, 255}, 0);
+}
+
+void BattleState::update() {
+	std::stringstream buf("");
+	buf << " " << player[0]->getName() << "\n";
+	buf << " " << player[1]->getName();
+	playerNameDisplay->setText(buf.str());
+
+	buf.str("");
+	buf << " " << player[0]->getCurrentHP() << "\n";
+	buf << " " << player[1]->getCurrentHP();
+	playerHPDisplay->setText(buf.str());
+}

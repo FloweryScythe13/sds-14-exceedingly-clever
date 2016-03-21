@@ -1,0 +1,37 @@
+#ifndef _WIDGET_H
+#define _WIDGET_H
+
+#include <vector>
+#include "rect.h"
+
+class Widget {
+public:
+	Widget(const Rect& reg, int tex, Widget* parent = 0);
+	virtual ~Widget();
+	
+	int getTexture() const {return texture;}
+	Rect getRegion() const {return region;}
+	
+	void addChild(Widget* child);
+	void setParent(Widget* w) {parent = w;}
+	Widget* getParent() const {return parent;}
+	
+	virtual void draw();
+
+	void show() {visible = true;}
+	void hide() {visible = false;}
+	void toggleVisible() {visible = !visible;}
+
+protected:
+	Widget* parent;
+	std::vector<Widget*> children;
+	
+	int texture;
+	Rect region;
+	bool visible;
+
+private:
+
+};
+
+#endif

@@ -1,0 +1,11 @@
+2
+char/knight.txt
+10 10
+3
+Hello world! Press "Z" to finish talking.
+If you move to the top right of the town,
+you will enter a new area!
+char/ardy.txt
+5 5
+1
+Hello!

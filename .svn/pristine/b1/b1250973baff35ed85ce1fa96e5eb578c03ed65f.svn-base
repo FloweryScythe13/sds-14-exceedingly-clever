@@ -1,0 +1,135 @@
+#include <iostream>
+#include <sstream>
+#include "equipment.h"
+#include "stats.h"
+#include "statusscreen.h"
+#include "imagebox.h"
+#include "inputsystem.h"
+#include "label.h"
+#include "party.h"
+#include "partymember.h"
+#include "render.h"
+
+StatusScreen::StatusScreen(Party& p, const Rect& pos, float z, Widget* parent) :
+	MenuScreen(pos, z, parent), party(p), characterID(0) {
+	mode = MENU_STATUS;
+	nextMode = mode;
+
+	font = loadFont("fonts/FFVI.ttf", 32);
+	base = loadTexture("images/menuwtbg.pam");
+	
+	Color white;
+	Rect levelText		= Rect(30, 55, 100, 75);
+	Rect primText		= Rect(210, 30, 140, 100);
+	Rect secondText		= Rect(420, 30, 140, 180);
+	Rect equipmentText	= Rect(30, 165, 180, 200);
+	std::stringstream stream("");
+	
+	//Text for the character's level
+	addChild(new Label(" Level:\n Exp:", base, white, font, levelText, z));
+	
+	//Text for the character's primary stats
+	for(int i = 0; i < PRIM_STAT_COUNT; ++i)
+		stream << " " << STAT_NAME[i] << ":\n";
+	addChild(new Label(stream.str(), base, white, font, primText, z, this));
+	stream.str("");
+	
+	//Text for the character's secondary stats
+	for(int i = PRIM_STAT_COUNT; i < STAT_MAX; ++i)
+		stream << " " << STAT_NAME[i] << ":\n";
+	addChild(new Label(stream.str(), base, white, font, secondText, z, this));
+	stream.str("");
+	
+	//Text for the character's equipment
+	for(int i = 0; i < SLOT_MAX; ++i)
+		stream << " " << slotName[i] << ":\n";
+	addChild(new Label(stream.str(), base, white, font, equipmentText, z, this));
+	
+	Rect charNamePos	= Rect(30, 30, 150, 25);
+	Rect levelPos		= Rect(levelText.x + levelText.w, levelText.y,
+		50, levelText.h);
+	Rect primStatPos	= Rect(primText.x + primText.w, primText.y,
+		60, primText.h);
+	Rect secondStatPos	= Rect(secondText.x + secondText.w, secondText.y,
+		50, secondText.h);
+	Rect equipmentPos	= Rect(equipmentText.x + equipmentText.w, equipmentText.y,
+		200, equipmentText.h);
+	Rect portraitPos	= Rect(420, 205, 128, 200);
+	
+	charName	= new Label("", base, white, font, charNamePos, z, this);
+	level		= new Label("", base, white, font, levelPos, z, this);
+	primStat	= new Label("", base, white, font, primStatPos, z, this);
+	secondStat	= new Label("", base, white, font, secondStatPos, z, this);
+	equipment	= new Label("", base, white, font, equipmentPos, z, this);
+	portrait	= new ImageBox(0, portraitPos, z, this);
+}
+
+StatusScreen::~StatusScreen() {}
+
+void StatusScreen::setCharacter(unsigned int id) {
+	characterID = id;
+	if(id >= party.getMemberCount()) {
+		characterID = 0;
+	}
+	
+	if(id < 0) {
+		id = party.getMemberCount() - 1;
+	}
+	
+	PartyMember* character = party.getMember(characterID);
+	character->updateEffStats();
+	
+	std::stringstream stream("");
+	stream << " " << character->getName();
+	charName->setText(stream.str());
+	
+	stream.str("");
+	stream << character->getLevel();
+	stream << "\n" << character->getFreeExp();
+	level->setText(stream.str());
+	
+	stream.str("");
+	for(int i = 0; i < PRIM_STAT_COUNT; ++i) {
+		stream << character->getStatEff(i) << '\n';
+	}
+	primStat->setText(stream.str());
+	
+	stream.str("");
+	for(int i = PRIM_STAT_COUNT; i < STAT_MAX; ++i) {
+		stream << character->getStatEff(i) << '\n';
+	}
+	secondStat->setText(stream.str());
+	
+	stream.str("");
+	for(int i = 0; i < SLOT_MAX; ++i) {
+		stream << character->getEquipment((SlotType)i).getName() << '\n';
+	}
+	equipment->setText(stream.str());
+	
+	portrait->setTexture(character->getPortraitTex());
+}
+
+void StatusScreen::draw() {
+	if(!visible) return;
+	drawChildren();
+}
+
+void StatusScreen::handleInput(InputSystem& input) {	
+	if(input.checkKeyState("x")) {
+		nextMode = MENU_HOME;
+	}
+	
+	if(input.checkKeyState("s")) {
+		setCharacter(++characterID);
+	}
+	
+	if(input.checkKeyState("a")) {
+		if(characterID == 0) setCharacter(party.getMemberCount() - 1);
+		else setCharacter(--characterID);
+	}
+}
+
+void StatusScreen::resetMode() {
+	MenuScreen::resetMode();
+	setCharacter(0);
+}

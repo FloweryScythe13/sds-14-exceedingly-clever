@@ -1,0 +1,58 @@
+#ifndef _EQUIPMENT_
+#define _EQUIPMENT_
+#include<iostream>
+#include<string>
+using namespace std;
+#include "stats.h"
+
+enum EquipType{ 
+  EQUIP_BLANK, EQUIP_WEAPON, EQUIP_TORSO, EQUIP_HEAD, EQUIP_LEGS, EQUIP_ACC, EQUIP_MAX
+};
+
+enum WeaponType{
+  WEAP_NONE,  WEAP_DAGGER, WEAP_MISSILE,  WEAP_SWORD,  
+  WEAP_POLELANCE,  WEAP_GUN,  WEAP_STAFF,  
+  WEAP_HAMMER,  WEAP_BOOK,  WEAP_GRENADE, WEAP_MAX
+};
+
+enum SlotType{
+  SLOT_WEAPON, SLOT_HEAD, SLOT_TORSO, SLOT_LEGS, SLOT_ACC1, SLOT_ACC2, SLOT_ACC3, SLOT_MAX};
+
+class Equipment { 
+ public:
+  Equipment();
+  Equipment(EquipType, WeaponType, string, StatList, StatList); 
+ 
+
+  EquipType getType() {return type;}
+  WeaponType getWeaponType() {return weaptype;}
+  string getName() {return name;}
+  StatList getBonus() {return statBonus;}
+  StatList getMods() {return statMod;}
+  
+  void setType(EquipType i) {type = i;}
+  void setWeapType(WeaponType i) {weaptype = i;}
+  void setName(string namae) {name = namae;}
+  void setBonus(StatList bon) {statBonus = bon;}
+  void setMod(StatList mds) {statMod = mds;}
+
+ protected:
+
+ private:
+  EquipType type;
+  WeaponType weaptype;
+  string name;
+  StatList statBonus, statMod;
+  
+};
+
+Struct EquipSlot {
+  EquipType type;
+  Equipment equip;
+  EquipSlot();
+  EquipSlot(EquipType, Equipment);
+}
+
+
+
+#endif

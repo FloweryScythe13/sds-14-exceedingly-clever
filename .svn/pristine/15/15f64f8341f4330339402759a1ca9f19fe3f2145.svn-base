@@ -1,0 +1,64 @@
+#include "equipment.h"
+#include "party.h"
+
+Party::Party() {
+	for(unsigned int i = 0; i < Equipment::getEquipCount(); ++i) {
+		equipList.push_back(0);
+	}
+}
+
+Party::~Party() {}
+
+void Party::addMember(PartyMember* c) {
+	for(unsigned int i = 0; i < member.size(); ++i) {
+		if(member[i] == c) return;
+	}
+	
+	member.push_back(c);
+}
+
+void Party::removeMember(const PartyMember* c) {
+	for(unsigned int i = 0; i < member.size(); ++i) {
+		if(member[i] == c) {
+			member.erase(member.begin() + i);
+			return;
+		}
+	}
+}
+
+void Party::removeMember(unsigned int id) {
+	if(id >= member.size()) return;
+	member.erase(member.begin() + id);
+}
+
+PartyMember* Party::getMember(unsigned int m) {
+	if(m >= member.size()) return 0;
+	return member[m];
+}
+
+unsigned int Party::getEquipQuantity(unsigned int id) const {
+	if(id >= equipList.size()) return 0;
+	return equipList[id];
+}
+
+unsigned int Party::getEquipQuantity(std::string name) const {
+	return getEquipQuantity(Equipment::idFromName(name));
+}
+
+void Party::addEquipQuantity(unsigned int id, int count) {
+	if(id >= equipList.size()) return;
+	equipList[id] += count;
+}
+
+void Party::addEquipQuantity(std::string name, int count) {
+	addEquipQuantity(Equipment::idFromName(name), count);
+}
+
+void Party::setEquipQuantity(unsigned int id, int q) {
+	if(id >= equipList.size()) return;
+	equipList[id] = q;
+}
+
+void Party::setEquipQuantity(std::string name, int q) {
+	setEquipQuantity(Equipment::idFromName(name), q);
+}

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE spec SYSTEM "http://www.cs.stolaf.edu/lib/SpecML/SpecML.dtd">
+<?xml-stylesheet
+   href="http://www.cs.stolaf.edu/lib/SpecML/SpecMLToHTML.xsl"
+   type="text/xsl"?>
+
+<spec>
+<title>Tilesheet</title>
+<header>Spec for the Tilesheet class</header>
+<credits></credits>
+
+<class name="Tilesheet">
+
+<nosuperclass/>
+
+<variables>
+<var name="TILESHEET_WIDTH" type="static const int">Number of tiles horizontally</var>
+<var name="TILESHEET_HEIGHT" type="static const int">Number of tiles vertically</var>
+<var name="TILESHEET_SIZE" type="static const int">Number of tiles in total</var>
+<var name="TILEWIDTH" type="static const int">Width of tiles in pixels</var>
+<var name="TILEHEIGHT" type="static const int">Height of tiles in pixels</var>
+<var name="texture" type="int">Source texture for the sheet</var>
+<var name="tileRegion" type="Rect[]">An array of Rects mapping a tile index to a texture region</var>
+</variables>
+
+<constructors-list>
+
+<constructor>
+<desc>Constructor to load an image file</desc>
+<arguments>
+<arg name="filename" type="std::string">The name of the image file to load</arg>
+</arguments>
+<statechange>Sets texture to the result from loading the image in filename. The tileRegion array is filled with the proper coordinates for textures.</statechange>
+</constructor>
+
+</constructors-list>
+
+<methods-list>
+
+<method name="getTexture" returntype="int">
+<desc>Returns the texture id</desc>
+<noarguments/>
+<statechange>None</statechange>
+<return>The texture id</return>
+</method>
+
+<method name="getTileRegion" returntype="Rect">
+<desc>Returns the texture coordinates of a given tile</desc>
+<arguments>
+<arg name="index" type="unsigned char">The index (0-255) of the tile to query.</arg>
+</arguments>
+<statechange>None</statechange>
+<return>The texture coordinates corresponding to the index.</return>
+</method>
+
+<method name="tileAdvData" returntype="void">
+<desc>Extracts the tile index and orientation from a single id</desc>
+<arguments>
+<arg name="id" type="unsigned short int">A bitmapped value containing tile index and tile orient</arg>
+<arg name="index" type="unsigned char&amp;">The destination for the index</arg>
+<arg name="orient" type="TileOrient&amp;">THe destination for the orient</arg>
+</arguments>
+<statechange>index is set to the index extracted from the id and orient is set to the orient extracted from the id.</statechange>
+<return>void</return>
+</method>
+
+</methods-list>
+
+</class>
+
+</spec>

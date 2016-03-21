@@ -1,0 +1,28 @@
+#ifndef _BATTLESTATE_H
+#define _BATTLESTATE_H
+
+#include "gamestate.h"
+#include "menumode.h"
+#include "party.h" 
+#include "widget.h"
+
+/*class InputSystem;
+class MenuScreen;
+class BattleState : public GameState {
+ public:
+  BattleState(InputSystem& input, Party& party , Party& enemyparty);
+  ~BattleState();
+  
+  void onOpen();
+  void onClose();
+  void onFrame();
+
+ protected:
+ private:
+  int background;
+  Party& party;
+
+
+};
+*/
+#endif

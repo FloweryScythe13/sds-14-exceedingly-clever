@@ -1,0 +1,48 @@
+#include <fstream>
+#include "cell.h"
+#include "tiles.h"
+#include "rect.h"
+#include "render.h"
+
+Cell::Cell(const Tilesheet* tile, std::string file) :
+	width(0), height(0), ptile(tile), filename(file) {
+	
+	std::ifstream stream(filename);
+	if(!stream.is_open()) {
+		return;
+	}
+	
+	stream >> width >> height;
+	
+	for(int j = 0; j < height; ++j)
+	for(int k = 0; k < width; ++k)
+	for(int i = 0; i < CELL_MAX_LAYER; ++i) {
+		stream >> tiles[i][j][k];
+	}
+	
+	stream.close();
+}
+
+void Cell::draw(const Rect& camera) {
+	if(!ptile) return;
+	
+	int tileLeft = camera.x / 32.0f - 1;
+	int tileRight = tileLeft + camera.w / 32.0f + 1;
+	int tileTop = camera.y / 32.0f - 1;
+	int tileBottom = tileTop + camera.h / 32.0f + 1;
+	int tex = ptile->getTexture();
+	
+	for(int j = tileTop; j < tileBottom; ++j)
+	for(int k = tileLeft; k < tileRight; ++k)
+	for(int i = 0; i < CELL_MAX_LAYER; ++i) {
+		Rect pos = {
+			k * 32.0f,
+			j * 32.0f,
+			32.0f,
+			32.0f
+		};
+		
+		drawTexture(tex, pos, ptile->getTileRegion(tiles[i][j][k]),
+			CELL_MAX_LAYER - i);
+	}
+}

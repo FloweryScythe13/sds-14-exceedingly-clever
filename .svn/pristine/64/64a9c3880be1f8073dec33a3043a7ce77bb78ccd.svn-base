@@ -1,0 +1,40 @@
+#include<iostream>
+using namespace std;
+#include "tiles.h"
+#include "render.h"
+
+Tilesheet::Tilesheet(std::string input) {
+	texture = loadTexture(input.c_str());
+	for(int i = 0; i < TILESHEET_SIZE; ++i) {
+		int x = TILEWIDTH * (i % TILESHEET_WIDTH);
+		int y = TILEHEIGHT * (i / TILESHEET_WIDTH);
+		tileRegion[i].x = x;
+		tileRegion[i].y = y;
+		tileRegion[i].w = TILEWIDTH;
+		tileRegion[i].h = TILEHEIGHT;
+	}
+}
+
+Tilesheet::Tilesheet(int t) {
+	texture = t;
+	for(int i = 0; i < TILESHEET_SIZE; ++i) {
+		int x = TILEWIDTH * (i % TILESHEET_WIDTH);
+		int y = TILEHEIGHT * (i / TILESHEET_WIDTH);
+		tileRegion[i].x = x;
+		tileRegion[i].y = y;
+		tileRegion[i].w = TILEWIDTH;
+		tileRegion[i].h = TILEHEIGHT;
+	}
+}
+
+int Tilesheet::getTexture() const {return texture;}
+
+Rect Tilesheet::getTileRegion(int index) const {
+	return tileRegion[index];
+}
+
+Rect Tilesheet::getTileRegion(int x, int y) const {
+	int index;
+	index = y*TILEHEIGHT + x;
+	return tileRegion[index];
+}

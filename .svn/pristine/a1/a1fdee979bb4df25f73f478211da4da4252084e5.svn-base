@@ -1,0 +1,69 @@
+#ifndef _CHARACTER_H
+#define _CHARACTER_H
+
+#include <string>
+
+struct CombatStats {
+	CombatStats(unsigned int mhp = 0, unsigned int str = 0, unsigned int mag = 0, unsigned int spd = 0);
+
+	unsigned int currHP, baseMaxHP, baseStrength, baseMagic, baseSpeed;
+	unsigned int bonusMaxHP, bonusStrength, bonusMagic, bonusSpeed;
+};
+
+//std::ostream& operator<< (std::ostream&, const CombatStats&);
+
+class Character {
+public:
+	Character(std::string name);
+	Character(std::string name, const CombatStats& stats);
+	~Character();
+	
+	std::string getName() const {return name;}
+	void setName(std::string n) {name = n;}
+
+	void setCurrHP(unsigned int val) {stats.currHP = val;}
+	void setBaseMaxHP(unsigned int val) {stats.baseMaxHP = val;}
+	void setBaseStrength(unsigned int val) {stats.baseStrength = val;}
+	void setBaseMagic(unsigned int val) {stats.baseMagic = val;}
+	void setBaseSpeed(unsigned int val) {stats.baseSpeed = val;}
+	void setBonusMaxHP(unsigned int val) {stats.bonusMaxHP = val;}
+	void setBonusStrength(unsigned int val) {stats.bonusStrength = val;}
+	void setBonusMagic(unsigned int val) {stats.bonusMagic = val;}
+	void setBonusSpeed(unsigned int val) {stats.bonusSpeed = val;}
+
+	unsigned int getCurrHP() const {return stats.currHP;}
+	unsigned int getBaseMaxHP() const {return stats.baseMaxHP;}
+	unsigned int getBaseStrength() const {return stats.baseStrength;}
+	unsigned int getBaseMagic() const {return stats.baseMagic;}
+	unsigned int getBaseSpeed() const {return stats.baseSpeed;}
+	unsigned int getBonusMaxHP() const {return stats.bonusMaxHP;}
+	unsigned int getBonusStrength() const {return stats.bonusStrength;}
+	unsigned int getBonusMagic() const {return stats.bonusMagic;}
+	unsigned int getBonusSpeed() const {return stats.bonusSpeed;}
+
+	void setLevel(unsigned int val) {level = val;}
+	unsigned int getLevel() const {return level;}
+
+	void addTotalExp(unsigned int val) {totalExp +=  val;}
+	void setTotalExp(unsigned int val) {totalExp = val;}
+	unsigned int getTotalExp() const {return totalExp;}
+
+	void addFreeExp(unsigned int val) {freeExp += val;}
+	void subFreeExp(unsigned int val) {freeExp -= val;}
+	void setFreeExp(unsigned int val) {freeExp = val;}
+	unsigned int getFreeExp() const {return freeExp;}
+
+protected:
+	std::string name;
+	CombatStats stats;
+	unsigned int level;
+	unsigned int totalExp;
+	unsigned int freeExp;
+	//Abilities
+	//Inventory
+	
+private:
+
+};
+
+#endif

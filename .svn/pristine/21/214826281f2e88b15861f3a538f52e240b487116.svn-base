@@ -1,0 +1,145 @@
+#include <vector>
+#include <SDL_events.h>
+#include <SDL_keycode.h>
+#include <SDL_scancode.h>
+#include <SDL_mouse.h>
+#include "inputsystem.h"
+
+InputSystem::InputSystem() : _mousex(0), _mousey(0) {
+	_keymap["a"]	= SDLK_a;
+	_keymap["b"]	= SDLK_b;
+	_keymap["c"]	= SDLK_c;
+	_keymap["d"]	= SDLK_d;
+	_keymap["e"]	= SDLK_e;
+	_keymap["f"]	= SDLK_f;
+	_keymap["g"]	= SDLK_g;
+	_keymap["h"]	= SDLK_h;
+	_keymap["i"]	= SDLK_i;
+	_keymap["j"]	= SDLK_j;
+	_keymap["k"]	= SDLK_k;
+	_keymap["l"]	= SDLK_l;
+	_keymap["m"]	= SDLK_m;
+	_keymap["n"]	= SDLK_n;
+	_keymap["o"]	= SDLK_o;
+	_keymap["p"]	= SDLK_p;
+	_keymap["q"]	= SDLK_q;
+	_keymap["r"]	= SDLK_r;
+	_keymap["s"]	= SDLK_s;
+	_keymap["t"]	= SDLK_t;
+	_keymap["u"]	= SDLK_u;
+	_keymap["v"]	= SDLK_v;
+	_keymap["w"]	= SDLK_w;
+	_keymap["x"]	= SDLK_x;
+	_keymap["y"]	= SDLK_y;
+	_keymap["z"]	= SDLK_z;
+
+	_keymap["1"]	= SDLK_1;
+	_keymap["2"]	= SDLK_2;
+	_keymap["3"]	= SDLK_3;
+	_keymap["4"]	= SDLK_4;
+	_keymap["5"]	= SDLK_5;
+	_keymap["6"]	= SDLK_6;
+	_keymap["7"]	= SDLK_7;
+	_keymap["8"]	= SDLK_8;
+	_keymap["9"]	= SDLK_9;
+	_keymap["0"]	= SDLK_0;
+	_keymap["f1"]	= SDLK_F1;
+	_keymap["f2"]	= SDLK_F2;
+	_keymap["f3"]	= SDLK_F3;
+	_keymap["f4"]	= SDLK_F4;
+	_keymap["f5"]	= SDLK_F5;
+	_keymap["f6"]	= SDLK_F6;
+	_keymap["f7"]	= SDLK_F7;
+	_keymap["f8"]	= SDLK_F8;
+	_keymap["f9"]	= SDLK_F9;
+	_keymap["f10"]	= SDLK_F10;
+	_keymap["f11"]	= SDLK_F11;
+	_keymap["f12"]	= SDLK_F12;
+
+	_keymap["pause"]		= SDLK_PAUSE;
+	_keymap["insert"]		= SDLK_INSERT;
+	_keymap["delete"]		= SDLK_DELETE;
+	_keymap["home"]			= SDLK_HOME;
+	_keymap["end"]			= SDLK_END;
+	_keymap["pageup"]		= SDLK_PAGEUP;
+	_keymap["pagedown"]		= SDLK_PAGEDOWN;
+	_keymap["backspace"]	= SDLK_BACKSPACE;
+	_keymap["space"]		= SDLK_SPACE;
+	_keymap["escape"]		= SDLK_ESCAPE;
+	_keymap["return"]		= SDLK_RETURN;
+
+	_keymap["up"]		= SDLK_UP;
+	_keymap["down"]		= SDLK_DOWN;
+	_keymap["left"]		= SDLK_LEFT;
+	_keymap["right"]	= SDLK_RIGHT;
+
+	_keymap["comma"]	= SDLK_COMMA;
+	_keymap["period"]	= SDLK_PERIOD;
+	_keymap["slash"]	= SDLK_SLASH;
+
+	_keymap["mleft"]	= SDL_BUTTON_LEFT;
+	_keymap["mmiddle"]	= SDL_BUTTON_MIDDLE;
+	_keymap["mright"]	= SDL_BUTTON_RIGHT;
+}
+
+InputSystem::~InputSystem() {}
+
+int InputSystem::update() {
+	SDL_Event e;
+	std::vector<unsigned int> keystack;
+
+	while(SDL_PollEvent(&e)) {
+		_mousex = e.motion.x;
+		_mousey = e.motion.y;
+
+		switch(e.type) {
+			case SDL_KEYDOWN:
+				_states[e.key.keysym.sym] = KEYSTATE_TAP;
+				keystack.push_back(e.key.keysym.sym);
+				break;
+			case SDL_KEYUP:
+				_states[e.key.keysym.sym] = KEYSTATE_UNTAP;
+				keystack.push_back(e.key.keysym.sym);
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+				_states[e.button.button] = KEYSTATE_TAP;
+				keystack.push_back(e.button.button);
+				break;
+			case SDL_MOUSEBUTTONUP:
+				_states[e.button.button] = KEYSTATE_UNTAP;
+				keystack.push_back(e.button.button);
+				break;	
+			case SDL_QUIT:
+				return 1;
+		}
+	}
+
+	std::map<unsigned int, KeyState>::iterator iter;
+	for(iter = _states.begin(); iter != _states.end(); ++iter) {
+		bool interacted = false;
+		for(unsigned int i = 0; i < keystack.size(); ++i) {
+			if(keystack[i] == iter->first) {
+				interacted = true;
+				break;
+			}
+		}
+
+		if(!interacted) {
+			if(iter->second == KEYSTATE_TAP) {
+				iter->second = KEYSTATE_DOWN;
+			} else if(iter->second == KEYSTATE_UNTAP) {
+				iter->second = KEYSTATE_UP;
+			}
+		}
+	}
+
+	return 0;
+}
+
+KeyState InputSystem::getKeyState(std::string key) {
+	return _states[_keymap[key]];
+}
+
+bool InputSystem::checkKeyState(std::string key, int state) {
+	return !!(_states[_keymap[key]] & state);
+}

@@ -1,0 +1,397 @@
+#include <cmath>
+#include <iostream>
+#include <sstream>
+#include "battlestate.h"
+#include "button.h"
+#include "combatchar.h"
+#include "direction.h"
+#include "imagebox.h"
+#include "inputsystem.h"
+#include "label.h"
+#include "party.h"
+#include "render.h"
+#include "widget.h"
+#include "rect.h"
+
+BattleState::BattleState(InputSystem& input, Party& party, CombatChar** e,
+	int numEnem) :	GameState(input), party(party) {
+
+	finished = true;
+	counter = 0;	
+	rate = 60;
+	isPaused = false;
+	victory = VICTORY_NONE;
+	mode = BATTLE_IDLE;
+	activeButton = 0;
+	activeCharacter = 0;
+	activeCommand = 0;
+	activeTarget = 0;
+
+	background = loadTexture("images/beach.pam"); 
+	labelTex = loadTexture("images/blank.pam");
+	buttonOn = loadTexture("images/buttonselected.pam");
+	buttonOff = loadTexture("images/buttonbase.pam");
+	boxTex = loadTexture("images/blank.pam");
+	font = loadFont("fonts/FFVI.ttf", 20);
+
+	//Logic for initializing the combat parties
+	for(unsigned int i = 0; i < party.getMemberCount(); ++i) {
+		player.push_back(new CombatChar(*party.getMember(i)));
+		player[i]->setAnimation("walk_left");
+		player[i]->setATB(rand() % 50);
+		alivePlayer.push_back(i);
+	}
+
+	for(int i = 0; i < numEnem; ++i) {
+		enemies.push_back(e[i]);
+		enemies[i]->setAnimation("walk_right");
+		enemies[i]->setATB(rand() % 40);
+		aliveEnemies.push_back(i);
+	}
+
+	//Widget creation
+	Rect pos(0.0f, 320.0f, 640.0f, 480.0f);
+	mainGUI = new Widget(pos, 0.0f);
+	
+	Rect commandBoxPos(0.0f, 0.0f, 120.0f, 160.0f);
+	commandBox = new ImageBox(boxTex, commandBoxPos, 0.0f, mainGUI);
+
+	Rect targetBoxPos(120.0f, 0.f, 120.0f, 160.0f);
+	targetBox = new ImageBox(boxTex, targetBoxPos, 0.0f, mainGUI);
+	for(unsigned int i = 0; i < enemies.size(); ++i) {
+		Rect temp(0.0f, i * font->getMaxHeight(), 120.0f, font->getMaxHeight());
+		targetButton.push_back(new Button(buttonOff, buttonOn, "Test",
+			white, font, temp, 0.0f, targetBox));
+	}
+
+	for(unsigned int i = 0; i < targetButton.size(); ++i) {
+		if(i > 0)
+			targetButton[i]->setNext(DIR_UP, targetButton[i - 1]);
+		if(i < targetButton.size() - 1)
+			targetButton[i]->setNext(DIR_DOWN, targetButton[i + 1]);
+	}
+
+	std::stringstream buf("");
+	for(unsigned int i = 0; i < player.size(); ++i) {
+		buf << " " << player[i]->getName() << '\n';
+	}
+	
+	Rect namePos(240.0f, 0.0f, 120.0f, 160.f);
+	playerNameDisplay = new Label(buf.str(), labelTex,
+		white, font, namePos, 0.0f, mainGUI);
+
+	buf.str("");
+	for(unsigned int i = 0; i < player.size(); ++i) {
+		buf << " " << player[i]->getCurrentHP() << '\n';
+	}
+
+	Rect hpPos(560.0f, 0.0f, 120.0f, 80.0f);
+	playerHPDisplay = new Label(buf.str(), labelTex,
+		white, font, hpPos, 0.0f, mainGUI);
+
+	commandBox->hide();
+	targetBox->hide();
+
+	for(unsigned int i = 0; i < player.size(); ++i) {
+		atbBar.push_back(Rect(360, 320 + font->getMaxHeight() * i, 0, font->getMaxHeight()));
+	}
+
+	for(unsigned int i = 0; i < player.size(); ++i) {
+		playerSpritePos.push_back(Rect(400, 170 + 80 * i, 32, 32));
+	}
+
+	for(unsigned int i = 0; i < enemies.size(); ++i) {
+		enemySpritePos.push_back(Rect(100, 100 + 50 * i, 32, 32));
+	}
+}
+
+BattleState::~BattleState() {
+	delete mainGUI;
+	for(unsigned int i = 0; i < player.size(); ++i) {
+		delete player[i];
+	}
+
+	for(unsigned int i = 0; i < enemies.size(); ++i) {
+		delete enemies[i];
+	}
+}
+
+void BattleState::onOpen() {
+	running = true;
+	finished = true;
+	isPaused = false;
+	
+}
+
+void BattleState::onClose() {
+	nextState = 0;
+}
+
+void BattleState::onFrame() {
+	int damageDealt;
+	//Note: the below key input is for testing purposes. For functional gameplay, this guard should check the status of the bool combatCompleted variable 
+	if(victory != VICTORY_NONE) {
+		running = false;
+	}
+
+	if(input.checkKeyState("e")) {
+		std::cout << "Switching to exploration\n";
+		running = false;
+	}
+
+	if(!isPaused && ++counter >= rate && victory == VICTORY_NONE) {
+		counter = 0;
+		bool actionTaken = false;
+		checkDeaths();
+		for(unsigned int i = 0; i < aliveEnemies.size(); ++i) {
+			unsigned enemyID = aliveEnemies[i];
+			enemies[enemyID]->updateATB();
+			if(enemies[enemyID]->checkATB() && !actionTaken) {
+				//Enemy is ready for action
+				int cmd = rand() % enemies[enemyID]->getCommandCount();
+				int target;
+				if(alivePlayer.size()) target = alivePlayer[rand() % alivePlayer.size()];
+				else break;
+				
+				enemies[enemyID]->performCommand(cmd, player[target], &damageDealt);
+				std::cout << "\tEnemy " << enemies[enemyID]->getName() << " dealt " << damageDealt << " damage to player " <<
+					player[target]->getName() << '\n';
+				checkDeaths();
+				actionTaken = true;
+			}
+		}
+
+		for(unsigned int i = 0; i < alivePlayer.size(); ++i) {
+			unsigned int playerID = alivePlayer[i];
+			player[playerID]->updateATB();
+			if(player[playerID]->checkATB() && mode == BATTLE_IDLE) {
+				turnQueue.push_back(playerID);
+			}
+		}
+
+	}
+
+	if(turnQueue.size() && mode == BATTLE_IDLE) {
+		activeCharacter = turnQueue.front();
+		turnQueue.erase(turnQueue.begin());
+		openPlayerCommand(activeCharacter);
+		checkDeaths();
+	}
+
+	for(unsigned int i = 0; i < enemies.size() && i < targetButton.size(); ++i) {
+		if(activeButton == targetButton[i]) {
+			activeTarget = enemies[i];
+			break;
+		}
+	}
+
+	if(input.checkKeyState("down")) {
+		if(activeButton)
+			activeButton = activeButton->move(DIR_DOWN);
+	}
+
+	if(input.checkKeyState("up")) {
+		if(activeButton)
+			activeButton = activeButton->move(DIR_UP);
+	}
+
+	if(input.checkKeyState("z")) {
+		switch(mode) {
+		case BATTLE_IDLE:
+			break;
+		case BATTLE_COMMAND:
+			openTarget();
+			activeButton = activeButton->move(DIR_ACCEPT);
+			break;
+		case BATTLE_TARGET:
+			if(!activeTarget->getCurrentHP()) break;
+			if(player[activeCharacter]->performCommand(activeCommand, activeTarget, &damageDealt)) {
+				std::cout << "\tPlayer " << player[activeCharacter]->getName() << " dealt " << damageDealt << " damage to enemy " <<
+					activeTarget->getName() << '\n';
+				openIdle();
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+	if(input.checkKeyState("x")) {
+		switch(mode) {
+		case BATTLE_IDLE:
+			break;
+		case BATTLE_COMMAND:
+			break;
+		case BATTLE_TARGET:
+			closeTarget();
+			activeButton = activeButton->move(DIR_CANCEL);
+			break;
+		default:
+			break;
+		}
+	}
+
+	drawTexture(background, {0, 0, 640, 480}, 10);
+	mainGUI->draw();
+
+	for(unsigned int i = 0; i < player.size(); ++i) {
+		Color c;
+		atbBar[i].w = player[i]->getATB() * 2;
+		if(player[i]->checkATB()) c = Color(255, 255, 0);
+		if(player[i]->checkATB() && i == activeCharacter) {
+			c = Color(255, 0, 0);
+		}
+		drawBox(atbBar[i], c, 0);
+	}
+	
+	updateText();
+	for(unsigned int i = 0; i < player.size(); ++i) {
+		if(player[i]->getCurrentHP() > 0) player[i]->updateAnimation();
+		drawTexture(player[i]->getExploreTex(), playerSpritePos[i], player[i]->getAnimationRect(), 2.5);
+	}
+
+	for(unsigned int i = 0; i < enemies.size(); ++i) {
+		if(enemies[i]->getCurrentHP() > 0) enemies[i]->updateAnimation();
+		else {
+			enemies[i]->setAnimation("death");
+			enemies[i]->updateAnimation();
+		}
+		drawTexture(enemies[i]->getExploreTex(), enemySpritePos[i], enemies[i]->getAnimationRect(), 2.5);
+	}
+}
+
+void BattleState::checkDeaths() {
+	alivePlayer.clear();
+	for(unsigned int i = 0; i < player.size(); ++i) {
+		if(player[i]->getCurrentHP() > 0) {
+			alivePlayer.push_back(i);
+		}
+		else player[i]->setATB(0);
+	}
+
+	if(!alivePlayer.size()) {
+		victory = VICTORY_ENEMY;
+		std::cout << "You lose the battle!\n";
+	}
+
+	aliveEnemies.clear();
+	for(unsigned int i = 0; i < enemies.size(); ++i) {
+		if(enemies[i]->getCurrentHP() > 0) aliveEnemies.push_back(i);
+		else {
+			enemies[i]->setATB(0);
+			targetButton[i]->setColor(Color(0, 0, 0, font->getMaxHeight()));
+		}
+	}
+
+	if(!aliveEnemies.size()) {
+		victory = VICTORY_PLAYER;
+		std::cout << "You win the battle!\n";
+	}
+}
+
+void BattleState::updateText() {
+	std::stringstream buf("");
+	for(unsigned int i = 0; i < player.size(); ++i) {
+		buf << " " << player[i]->getName();
+		if(player[i]->checkATB() && activeCharacter == i)
+			buf << "*\n";
+		else buf << '\n';
+	}
+	playerNameDisplay->setText(buf.str());
+
+	buf.str("");
+	for(unsigned int i = 0; i < player.size(); ++i) {
+		buf << " " << player[i]->getCurrentHP() << '\n';
+	}
+	playerHPDisplay->setText(buf.str());
+
+	// for(unsigned int i = 0; i < commandButton.size(); ++i) {
+		// commandButton[i]->setText(player[activeCharacter]->getBattleCommand(i).name);
+	// }
+
+	for(unsigned int i = 0; i < enemies.size() && i < targetButton.size(); ++i) {
+		targetButton[i]->setText(enemies[i]->getName());
+		targetButton[i]->enable(true);
+	}
+
+	for(unsigned int i = enemies.size(); i < targetButton.size(); ++i) {
+		targetButton[i]->setText("");
+		targetButton[i]->enable(false);
+	}
+}
+
+void BattleState::openPlayerCommand(int id) {
+	mode = BATTLE_COMMAND;
+	if(activeButton)
+		activeButton->setSelected(false);
+		
+	activeCharacter = id;
+	for(unsigned int i = 0; i < commandButton.size(); ++i) {
+		Button* temp = commandButton[i];
+		commandBox->removeChild(temp);
+		delete temp;
+	}
+	
+	commandButton.clear();
+	for(unsigned int i = 0; i < player[activeCharacter]->getCommandCount(); ++i) {
+		Rect temp(0.0f, i * font->getMaxHeight(), 120.0f, font->getMaxHeight());
+		std::stringstream buf("");
+		buf << " " << player[activeCharacter]->getBattleCommand(i).name;
+		commandButton.push_back(new Button(buttonOff, buttonOn, buf.str(),
+			white, font, temp, 0.0f, commandBox));
+	}
+
+	for(unsigned int i = 0; i < commandButton.size(); ++i) {
+		if(i > 0)
+			commandButton[i]->setNext(DIR_UP, commandButton[i - 1]);
+		if(i < commandButton.size() - 1)
+			commandButton[i]->setNext(DIR_DOWN, commandButton[i + 1]);
+	}
+	
+	activeButton = commandButton[0];
+	activeButton->setSelected(true);
+	isPaused = true;
+
+	commandBox->show();
+	for(unsigned int i = 0; i < commandButton.size(); ++i) {
+		commandButton[i]->setNext(DIR_ACCEPT, targetButton[0]);
+	}
+}
+
+void BattleState::openTarget() {
+	mode = BATTLE_TARGET;
+
+	targetBox->show();
+	for(unsigned int i = 0; i < targetButton.size(); ++i) {
+		targetButton[i]->setNext(DIR_CANCEL, activeButton);
+	}
+
+	for(unsigned int i = 0; i < commandButton.size(); ++i) {
+		if(activeButton == commandButton[i]) activeCommand = i;
+	}
+}
+
+void BattleState::openIdle() {
+	mode = BATTLE_IDLE;
+	if(activeButton)
+		activeButton->setSelected(false);
+	activeButton = 0;
+	isPaused = false;
+
+	commandBox->hide();
+	targetBox->hide();
+}
+
+void BattleState::closePlayerCommand() {
+	mode = BATTLE_IDLE;
+	if(activeButton) activeButton->setSelected(false);
+	isPaused = false;
+
+	commandBox->hide();
+}
+
+void BattleState::closeTarget() {
+	mode = BATTLE_COMMAND;
+	targetBox->hide();
+
+}

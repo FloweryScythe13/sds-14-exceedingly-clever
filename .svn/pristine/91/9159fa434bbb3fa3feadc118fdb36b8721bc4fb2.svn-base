@@ -1,0 +1,47 @@
+Knight
+500
+8
+20
+10
+8
+20
+5
+5
+5
+0
+0
+images/knight.pam
+images/knight.pam
+images/lightningportrait.pam
+4
+walk_down
+32 32
+4 3
+1
+8
+3
+0 1 2
+walk_left
+32 32
+4 3
+1
+8
+3
+3 4 5
+walk_right
+32 32
+4 3
+1
+8
+3
+6 7 8
+walk_up
+32 32
+4 3
+1
+8
+3
+9 10 11
+2
+Hello_Joe! You have been doing a great job, and we appreciate your work and persistence!
+something random

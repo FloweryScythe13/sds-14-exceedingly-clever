@@ -1,0 +1,13 @@
+#ifndef _RECT_H
+#define _RECT_H
+
+struct Rect {
+	float x, y, w, h;
+	
+	float getCenterX() const;
+	float getCenterY() const;
+	
+	void setCenter(float cx, float cy);
+};
+
+#endif

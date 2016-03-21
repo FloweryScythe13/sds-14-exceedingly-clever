@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE spec SYSTEM "http://www.cs.stolaf.edu/lib/SpecML/SpecML.dtd">
+<?xml-stylesheet
+   href="http://www.cs.stolaf.edu/lib/SpecML/SpecMLToHTML.xsl"
+   type="text/xsl"?>
+
+<spec>
+<title>MainMenuState Class Specification</title>
+<header>This class handles the creation and management of the main menu.</header>
+<credits>Joe Jung, Eric Brichetto</credits>
+
+<class name="MainMenuState">
+
+<superclass name="GameState">
+</superclass>
+
+<variables>
+<var name="background" type="int">The ID of the background texture, to be displayed using loadTexture and draw().</var>
+<var name="currentMode" type="MenuMode">An enum representing the currently opened submenu. The possible names are identical to those displayed in-game in the menu, with the exception of Home (which represents the default main menu screen).</var>
+<var name="screen" type="MenuScreen*[]">An array of pointers to MenuScreen widgets. </var> 
+<var name="party" type="Party&amp;">A reference to a Party. </var>
+</variables>
+
+<constructors-list>
+
+<constructor>
+<desc></desc>
+<arguments>
+<arg name="input" type="InputSystem&amp;">A particular GameState.</arg>
+<arg name="party" type="Party&amp;">A Party of characters holding Ardy and Elma.</arg>
+</arguments>
+<statechange>Initializes GameState with input and party with party. Loads images/menubackground.pam as a texture ID into background. Sets currentMode to MENU_HOME and creates a new HomeScreen object, StatusScreen object, and EquipScreen object for screen[MENU_HOME], screen[MENU_STATUS], and screen[MENU_EQUIPMENT], respectively. Shows the Home menu and hides the others, and sets the inherited finished variable to false.</statechange>
+</constructor>
+
+</constructors-list>
+
+<destructor>
+<desc>Deletes the menu objects pointed to by each element in the screen array.</desc>
+<statechange></statechange>
+</destructor>
+
+<methods-list>
+
+<method name="onOpen" returntype="void">
+<desc></desc>
+<arguments>
+<arg name="none"></arg>
+</arguments>
+<statechange>Sets the inherited variables running and finished to true.</statechange>
+</method>
+
+<method name="onClose" returntype="void">
+<desc></desc>
+<arguments>
+<arg name="none"></arg>
+</arguments>
+<statechange>Sets the address pointed to by NextState equal to 0.</statechange>
+</method>
+
+<method name="onFrame" returntype="void">
+<desc>Manages the drawing of and switching between menus from MenuMode, and returning to exploration mode.</desc>
+<arguments>
+<arg name="none"></arg>
+</arguments>
+<statechange>Sets running to false if the 'x' key is pressed on the Home menu. Passes between different MenuModes and redraws the background texture each frame.</statechange>
+</method>
+
+</methods-list>
+
+</class>
+
+</spec>

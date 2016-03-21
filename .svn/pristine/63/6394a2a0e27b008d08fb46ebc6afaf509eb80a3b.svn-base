@@ -1,0 +1,26 @@
+#include <stdlib.h>
+#include <GL/glut.h>
+#include "render.h"
+
+void drawBox(Rect rect, double z) {
+	glBegin(GL_QUADS);
+		glVertex3f(rect.x, rect.y, z);
+		glVertex3f(rect.x, rect.y + rect.h, z);
+		glVertex3f(rect.x + rect.w, rect.y + rect.h, z);
+		glVertex3f(rect.x + rect.w, rect.y, z);
+	glEnd();
+}
+
+void drawBox(Rect rect, Color c, double z) {
+	glColor4f(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f);
+	glBegin(GL_QUADS);
+		glVertex3f(rect.x, rect.y, z);
+		glVertex3f(rect.x, rect.y + rect.h, z);
+		glVertex3f(rect.x + rect.w, rect.y + rect.h, z);
+		glVertex3f(rect.x + rect.w, rect.y, z);
+	glEnd();
+}
+
+void drawText(float x, float y, float z, const char* text, void* font, Color c) {
+
+}

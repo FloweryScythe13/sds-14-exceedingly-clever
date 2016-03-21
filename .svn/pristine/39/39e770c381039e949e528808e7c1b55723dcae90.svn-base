@@ -1,0 +1,33 @@
+#ifndef _BATTLESTATE_H
+#define _BATTLESTATE_H
+
+#include "gamestate.h"
+#include "menumode.h"
+#include "party.h" 
+#include "widget.h"
+#include <vector>
+#include "combatchar.h"
+
+class InputSystem;
+class MenuScreen;
+class BattleState : public GameState {
+ public:
+  BattleState(InputSystem& input, Party& party);
+  virtual ~BattleState();
+  
+  void onOpen();
+  void onClose();
+  void onFrame();
+ protected:
+ private:
+  int background;
+  int menubackground;
+  Party& party;
+  bool isPaused;
+  int counter;
+  int rate;
+  vector<CombatChar*> player;
+  vector<CombatChar*> enemies;
+};
+
+#endif

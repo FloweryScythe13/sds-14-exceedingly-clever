@@ -1,0 +1,83 @@
+#include <iostream>
+#include <fstream>
+#include "cell.h"
+#include "filetool.h"
+#include "tiles.h"
+#include "rect.h"
+#include "render.h"
+
+Cell::Cell(std::string directory) :
+	width(0), height(0), ptile(0), directory(directory) {
+	
+	std::ifstream stream(directory + std::string("/area.txt"));
+	if(!stream.is_open()) {
+		for(int j = 0; j < height; ++j)
+		for(int k = 0; k < width; ++k)
+		for(int i = 0; i < CELL_MAX_LAYER; ++i) {
+			tiles[i][j][k] = 0;
+		}
+		return;
+	}
+	
+	name = readString(stream);
+	width = readUint32(stream);
+	height = readUint32(stream);
+
+	std::string temp = readString(stream);
+	temp[temp.size() - 2] = 'a';
+	temp[temp.size() - 1] = 'm';
+	ptile = new Tilesheet(temp);
+	stream.close();
+	
+	stream.open(directory + std::string("/map.txt"));
+	for(int j = 0; j < height; ++j)
+	for(int k = 0; k < width; ++k) {
+		tiles[0][j][k] = readUint16(stream);
+		tiles[1][j][k] = readUint16(stream);
+		tiles[2][j][k] = readUint16(stream);
+		solids[j][k] = readSint32(stream);
+	}
+	
+	stream.close();
+}
+
+Cell::~Cell() {
+	delete ptile;
+}
+
+void Cell::draw(const Rect& camera) {
+	if(!ptile) return;
+	
+	int tileLeft = camera.x / 32.0f - 1;
+	int tileRight = tileLeft + camera.w / 32.0f + 1;
+	int tileTop = camera.y / 32.0f - 1;
+	int tileBottom = tileTop + camera.h / 32.0f + 1;
+	
+	if(tileLeft < 0) tileLeft = 0;
+	if(tileRight >= width) tileRight = width - 1;
+	if(tileTop < 0) tileTop = 0;
+	if(tileBottom >= height) tileBottom = height - 1;
+	
+	int tex = ptile->getTexture();
+	
+	for(int j = tileTop; j <= tileBottom; ++j)
+	for(int k = tileLeft; k <= tileRight; ++k)
+	for(int i = 0; i < CELL_MAX_LAYER; ++i) {
+		Rect pos = {
+			k * 32.0f - camera.x,
+			j * 32.0f - camera.y,
+			32.0f,
+			32.0f
+		};
+		
+		unsigned char index;
+		TileOrient orient;
+		ptile->tileAdvData(tiles[i][j][k], index, orient);
+		//std::cout << "x: " << k << "\ty: " << j << "\ti: " << (int)index << '\n';
+		
+		drawTile(tex, pos, ptile->getTileRegion(index), orient,
+			CELL_MAX_LAYER - i, 1.0);
+		//drawTexture(tex, pos, ptile->getTileRegion(index)/*ptile->getTileRegion(tiles[i][j][k])*/,
+		//	CELL_MAX_LAYER - i);
+	}
+}

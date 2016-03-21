@@ -1,0 +1,178 @@
+#include <iostream>
+#include <fstream>
+#include "cell.h"
+#include "filetool.h"
+#include "npc.h"
+#include "tiles.h"
+#include "rect.h"
+#include "render.h"
+#include "warp.h"
+
+Cell::Cell(std::string directory) :
+	width(0), height(0), ptile(0), directory(directory) {
+	
+	for(int j = 0; j < CELL_MAX_HEIGHT; ++j)
+	for(int k = 0; k < CELL_MAX_WIDTH; ++k) {
+		tiles[0][j][k] = 0;
+		tiles[1][j][k] = 0;
+		tiles[2][j][k] = 0;
+		solids[j][k] = 0;
+		npcs[j][k] = 0;
+		warps[j][k] = 0;
+	}
+	
+	std::ifstream stream(directory + std::string("/area.txt"));
+	if(!stream.is_open()) {
+		for(int j = 0; j < height; ++j)
+		for(int k = 0; k < width; ++k)
+		for(int i = 0; i < CELL_MAX_LAYER; ++i) {
+			tiles[i][j][k] = 0;
+		}
+		return;
+	}
+	
+	name = readString(stream);
+	width = readUint32(stream);
+	height = readUint32(stream);
+
+	std::string temp = readString(stream);
+	temp[temp.size() - 2] = 'a';
+	temp[temp.size() - 1] = 'm';
+	ptile = new Tilesheet(temp);
+	stream.close();
+	
+	stream.open(directory + std::string("/map.txt"));
+	for(int j = 0; j < height; ++j)
+	for(int k = 0; k < width; ++k) {
+		tiles[0][j][k] = readUint16(stream);
+		tiles[1][j][k] = readUint16(stream);
+		tiles[2][j][k] = readUint16(stream);
+		solids[j][k] = readSint32(stream);
+	}
+	
+	stream.close();
+	
+	stream.open(directory + std::string("/npc.txt"));
+	if(stream.is_open()) {
+		unsigned int npcCount;
+		stream >> npcCount;
+		for(unsigned int i = 0; i < npcCount; ++i) {
+			NPC* npc = new NPC(stream);
+			if(npc->getTileX() >= width) npc->setTileX(width - 1);
+			if(npc->getTileY() >= height) npc->setTileY(height - 1);
+			npcs[npc->getTileY()][npc->getTileX()] = npc;
+			npc->setAnimation("idle_down");
+			npc->updateAnimation();
+		}
+		
+		stream.close();
+	} else {
+		std::cout << "No NPCs in the file\n";
+	}
+	
+	stream.open(directory + std::string("/warp.txt"));
+	if(stream.is_open()) {
+		unsigned int warpCount;
+		stream >> warpCount;
+		for(unsigned int i = 0; i < warpCount; ++i) {
+			int posx, posy;
+			stream >> posx;
+			stream >> posy;
+			Warp* warp = new Warp(stream);
+			
+			if(posx < 0 || posx >= width || posy < 0 || posy >= height) {
+				std::cout << "Invalid warp location\n";
+			} else {
+				warps[posy][posx] = warp;
+			}
+		}
+		
+		stream.close();
+	} else {
+		std::cout << "No warps in the file\n";
+	}
+	
+	stream.open(directory + std::string("/enemies.txt"));
+	if(stream.is_open()) {
+		unsigned int enemyCount;
+		stream >> enemyCount;
+		for(unsigned int i = 0; i < enemyCount; ++i) {
+			std::string enemyFile;
+			stream >> enemyFile;
+			battleEnemies.push_back(new Character(enemyFile));
+		}
+		stream.close();
+	} else {
+		std::cout << "No battles in the file\n";
+	}
+}
+
+Cell::~Cell() {
+	delete ptile;
+	for(int j = 0; j < height; ++j)
+	for(int k = 0; k < width; ++k) {
+		delete npcs[j][k];
+		delete warps[j][k];
+	}
+}
+
+NPC* Cell::getNPC(int tilex, int tiley) {
+	if(tilex >= width || tiley >= width || tilex < 0 || tiley < 0)
+		return 0;
+		
+	return npcs[tiley][tilex];
+}
+
+Warp* Cell::getWarp(int tilex, int tiley) {
+	if(tilex >= width || tiley >= width || tilex < 0 || tiley < 0)
+		return 0;
+		
+	return warps[tiley][tilex];
+}
+
+int Cell::getCollision(int tilex, int tiley) const {
+	if(tilex >= width || tiley >= width || tilex < 0 || tiley < 0)
+		return 0;
+		
+	return solids[tiley][tilex];
+}
+
+void Cell::draw(const Rect& camera) const {
+	if(!ptile) return;
+	
+	int tileLeft = camera.x / 32.0f - 1;
+	int tileRight = tileLeft + camera.w / 32.0f + 1;
+	int tileTop = camera.y / 32.0f - 1;
+	int tileBottom = tileTop + camera.h / 32.0f + 1;
+	
+	if(tileLeft < 0) tileLeft = 0;
+	if(tileRight >= width) tileRight = width - 1;
+	if(tileTop < 0) tileTop = 0;
+	if(tileBottom >= height) tileBottom = height - 1;
+	
+	int tex = ptile->getTexture();
+	
+	for(int j = tileTop; j <= tileBottom; ++j)
+	for(int k = tileLeft; k <= tileRight; ++k) {
+		for(int i = 0; i < CELL_MAX_LAYER; ++i) {
+			Rect pos = {
+				k * 32.0f - camera.x,
+				j * 32.0f - camera.y,
+				32.0f,
+				32.0f
+			};
+			
+			unsigned char index;
+			TileOrient orient;
+			ptile->tileAdvData(tiles[i][j][k], index, orient);
+			
+			drawTile(tex, pos, ptile->getTileRegion(index), orient,
+				CELL_MAX_LAYER - i, 1.0);
+		}
+		
+		if(npcs[k][j]) {
+			Rect npcPos(k * 32.0f - camera.x, j * 32.0f - camera.y, 32.0f, 32.0f);
+			drawTexture(npcs[k][j]->getExploreTex(), npcPos, npcs[k][j]->getAnimationRect(), 2.5);
+		}
+	}
+}

@@ -1,0 +1,29 @@
+#include <fstream>
+#include "character.h"
+#include "stats.h"
+
+Character::Character(std::string filename) : level(0), totalExp(0), freeExp(0) {
+	std::ifstream file(filename);
+	if(!file.is_open()) return;
+	file >> name;
+	for(int i = 0; i < STAT_MAX; ++i) {
+		file >> statBase.val[i];
+		statBonus.val[i] = 0;
+		statMod.val[i] = 0;
+		statEff.val[i] = 0;
+	}
+
+	for(int i = 0; i < PRIM_STAT_COUNT; ++i) {
+		statRaise[i] = 0;
+	}
+}
+
+Character::Character(std::string name, const StatList& base,
+	unsigned int xp = 0) : name(name), level(0), totalExp(0), freeExp(0), statBase(base) {
+	
+	totalExp = xp;
+}
+Character::Character(std::string name, const StatList& base) :
+	name(name), level(0), totalExp(0), freeExp(0), statBase(base) {}
+
+Character::~Character() {}

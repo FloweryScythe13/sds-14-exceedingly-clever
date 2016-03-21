@@ -1,0 +1,39 @@
+#include "stats.h"
+
+const int MAX_STAT_VAL[STAT_MAX] = {
+	1000,
+	100,
+	100,
+	100,
+	100,
+	100,
+	100,
+	100,
+	100,
+	100,
+	100
+};
+
+const int PRIM_STAT_COUNT = 4;
+
+const int PRIM_STAT_SCALE[PRIM_STAT_COUNT] = {
+	20, 1, 1, 1
+};
+
+const int PRIM_STAT_LVL_COST[20] = {
+	1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
+};
+
+const std::string STAT_NAME[STAT_MAX] = {
+	"HP",
+	"Strength",
+	"Magic",
+	"Speed",
+	"Attack",
+	"M. Power",
+	"P. Defense",
+	"I. Defense",
+	"M. Defense",
+	"Critical",
+	"Evasion"
+};

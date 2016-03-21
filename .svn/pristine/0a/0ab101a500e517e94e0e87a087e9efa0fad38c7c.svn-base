@@ -1,0 +1,81 @@
+#ifndef _CHARACTER_H
+#define _CHARACTER_H
+
+#include <fstream>
+#include <iostream>
+#include <string>
+#include "equipment.h"
+#include "stats.h"
+
+class Character {
+public:
+	Character();
+	Character(std::string name);
+	Character(std::ifstream& file);
+	Character(std::string name, const StatList& base, unsigned int xp);
+	Character(std::string name, const StatList& base);
+	~Character();
+
+	void readFromFile(std::ifstream& file);
+	//Getting and setting character statistics
+	std::string getName() const {return name;}
+	void setName(std::string n) {name = n;}
+
+	int getStatBase(unsigned int i) {return statBase[i];}
+	int getStatRaise(unsigned int i) {return statRaise[i];}
+	int getStatBonus(unsigned int i) {return statBonus[i];}
+	float getStatMod(unsigned int i) {return statMod[i];}
+	int getStatEff(unsigned int i) {return statEff[i];}
+	
+	void updateEffStats();
+	
+	void setStatRaise(unsigned int index, int j) {statRaise[index] = j;}
+	void setLevel(unsigned int val) {level = val;}
+	unsigned int getLevel() const {return level;}
+
+	//Getters and setters for Experience points
+	void addTotalExp(unsigned int val) {totalExp +=  val;}
+	void setTotalExp(unsigned int val) {totalExp = val;}
+	unsigned int getTotalExp() const {return totalExp;}
+
+	void addFreeExp(unsigned int val) {freeExp += val;}
+	void subFreeExp(unsigned int val) {freeExp -= val;}
+	void setFreeExp(unsigned int val) {freeExp = val;}
+	unsigned int getFreeExp() const {return freeExp;}
+
+	void equipItem(SlotType, unsigned int);
+	void equipItem(SlotType, std::string);
+	unsigned int getEquipID(SlotType s);
+	Equipment getEquipment(SlotType s);
+	
+	void print() const;
+
+protected:
+	std::string name;
+
+	unsigned int level;
+	unsigned int totalExp;
+	unsigned int freeExp;
+
+	StatList statBase;
+	int statRaise[4];
+	StatList statBonus;
+	StatList statMod;
+	StatList statEff;
+
+	const int AVERAGE_VAL = 3;
+	const int AVERAGE_MAGVAL = 1;
+	//Abilities
+	//Inventory
+	
+	//EquipSlot slot[SLOT_MAX];//0=weapon, 1=head, 2=torso, 3=legs, 4-6=acc
+	unsigned int slot[SLOT_MAX];
+
+	//Combat
+	BattleCommand commands[2];
+	
+private:
+	void initEquip();
+};
+
+#endif

@@ -1,0 +1,30 @@
+#include "render.h"
+#include "widget.h"
+
+Widget::Widget(const Rect& reg, int tex, Widget* parent) :
+	parent(parent), texture(tex), region(reg), visible(true) {}
+	
+Widget::~Widget() {
+	for(unsigned int i = 0; i < children.size(); ++i) {
+		delete children[i];
+	}
+	
+	children.clear();
+}
+
+void Widget::addChild(Widget* child) {
+	child->setParent(this);
+	for(unsigned int i = 0; i < children.size(); ++i) {
+		if(child == children[i]) return;
+	}
+	
+	children.push_back(child);
+}
+
+void Widget::draw() {
+	if(!visible) return;
+	drawTexture(texture, region, {0.0f, 0.0f, region.w, region.h});
+
+	for(unsigned int i = 0; i < children.size(); ++i)
+		children[i]->draw();
+}

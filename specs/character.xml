@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE spec SYSTEM "http://www.cs.stolaf.edu/lib/SpecML/SpecML.dtd">
+<?xml-stylesheet
+   href="http://www.cs.stolaf.edu/lib/SpecML/SpecMLToHTML.xsl"
+   type="text/xsl"?>
+
+<spec>
+<title>Character</title>
+<header>Spec for class Character</header>
+<credits></credits>
+
+<class name="Character">
+
+<nosuperclass/>
+
+<variables>
+<var name="name" visibility="protected" type="std::string">The name of this character</var>
+<var name="level" visibility="protected" type="unsigned int">The level of this character</var>
+<var name="totalExp" visibility="protected" type="unsigned int">The total experience of this character</var>
+<var name="freeExp" visibility="protected" type="unsigned int">The experience not allocated towards stats</var>
+<var name="statBase" visibility="protected" type="StatList">The base stats of this character</var>
+<var name="statRaise" visibility="protected" type="unsigned int[]">Extra allocated points towards HP, Str, Mag and Spd</var>
+<var name="statBonus" visibility="protected" type="StatList">Bonuses towards stats gained from equipment</var>
+<var name="statMod" visibility="protected" type="StatList">Percentage modifiers for stats gained from equipment</var>
+<var name="statEff" visibility="protected" type="StatList">The effective value of the stats</var>
+<var name="slot" visibility="protected" type="unsigned int[]">An array of equipment indices (7)</var>
+<var name="commands" visibility="protected" type="std::vector&lt;BattleCommand&gt;">A list of commands available in battle</var>
+<var name="exploreTex" visibility="protected" type="int">The texture used when drawing the character on the map and in battle</var>
+<var name="faceTex" visibility="protected" type="int">The texture used when drawing the character's face</var>
+<var name="portraitTex" visibility="protected" type="int">The texture used when drawing the character's portrait in the menu</var>
+<var name="animations" visibility="protected" type="std::map&lt;std::string, Animation&gt;">A list of available animations indexed by strings</var>
+<var name="currentAnimation" visibility="protected" type="Animation*">The current animation being used for the character</var>
+</variables>
+
+<constructors-list>
+
+<constructor visibility="public">
+<desc>Default constructor</desc>
+<noarguments/>
+<statechange>All values are initialized to 0 and the init method is called.</statechange>
+</constructor>
+
+<constructor visibility="public">
+<desc>Constructor for loading informaiton from an unopened file.</desc>
+<arguments>
+<arg name="filename" type="std::string">The name of the file to open</arg>
+</arguments>
+<statechange>All values are initialized to 0. A file is opened with the name filename, and is passed to readFromFile. init is called.</statechange>
+</constructor>
+
+<constructor visibility="public">
+<desc>Constructor for loading information from an opened file.</desc>
+<arguments>
+<arg name="file" type="std::ifstream&amp;">The file to read</arg>
+</arguments>
+<statechange>All values are initialized to 0. If the file is opened, it is passed to readFromFile. init is called.</statechange>
+</constructor>
+
+</constructors-list>
+
+<destructor>
+<desc>Virtual destructor</desc>
+<statechange>Nothing defined - is virtual.</statechange>
+</destructor>
+
+<methods-list>
+
+<method name="readFromFile" returntype="void">
+<desc>Loads all of the information about the character from the given file</desc>
+<arguments>
+<arg name="file" type="std::ifstream&amp;">The file to load</arg>
+</arguments>
+<statechange>The character's name and statistics are read from the file. loadAnimation is called.</statechange>
+<return>void</return>
+</method>
+
+<method name="getName" returntype="std::string">
+<desc>Returns the name</desc>
+<noarguments/>
+<statechange>None</statechange>
+<return>The name...</return>
+</method>
+
+<method name="setName" returntype="void">
+<desc>Sets the name</desc>
+<arguments>
+<arg name="n" type="std::string">The new name</arg>
+</arguments>
+<statechange>name is changed to n</statechange>
+<return>void</return>
+</method>
+
+<method name="getStatBase/Raise/Bonus/Eff" returntype="int">
+<desc>Returns the value of a particular stat base/raise/bonus/effective</desc>
+<arguments>
+<arg name="i" type="unsigned int">The stat to be queried (STAT_HP, STAT_STR, etc.)</arg>
+</arguments>
+<statechange>None</statechange>
+<return>The value of the stat requested.</return>
+</method>
+
+<method name="getStatMod" returntype="float">
+<desc>Returns the percentage modifier of a particular stat.</desc>
+<arguments>
+<arg name="i" type="unsigned int">The stat to be queried</arg>
+</arguments>
+<statechange>None</statechange>
+<return>The value of the stat modifier requested</return>
+</method>
+
+<method name="updateEffStats" returntype="void">
+<desc>Updates statEff to account for the character's base stats, raised stats, bonus stats and stat modifiers.</desc>
+<noarguments/>
+<statechange>statEff is changed.</statechange>
+<return>void</return>
+</method>
+
+<method name="setLevel" returntype="void">
+<desc>Set the level</desc>
+<arguments>
+<arg name="val" type="unsigned int">The new level</arg>
+</arguments>
+<statechange>level is changed to val</statechange>
+<return>void</return>
+</method>
+
+<method name="getLevel" returntype="unsigned int">
+<desc>Returns the level</desc>
+<noarguments/>
+<statechange>None</statechange>
+<return>The level</return>
+</method>
+
+<method name="equipItem" returntype="void">
+<desc>Equips an item in a slot based on the item index</desc>
+<arguments>
+<arg name="i" type="SlotType">The slot to change</arg>
+<arg name="gear" type="unsigned int">The item to equip</arg>
+</arguments>
+<statechange>The appropriate index in slot is changed to the id</statechange>
+<return>void</return>
+</method>
+
+<method name="equipItem" returntype="void">
+<desc>Equips an item in a slot based on the item's name</desc>
+<arguments>
+<arg name="i" type="SlotType">The slot to change</arg>
+<arg name="name" type="std::string">The name of the item to equip</arg>
+</arguments>
+<statechange>The appropriate index in slot is changed to the id of the equipment associated with the name.</statechange>
+<return>void</return>
+</method>
+
+<method name="getEquipID" returntype="unsigned int">
+<desc>Returns the id of the item in a given slot.</desc>
+<arguments>
+<arg name="i" type="SlotType">The slot to check.</arg>
+</arguments>
+<statechange>None</statechange>
+<return>The id of the appropriate slot</return>
+</method>
+
+<method name="getEquipment" returntype="Equipment">
+<desc>Returns a copy of the equipment associated with the id in a slot</desc>
+<arguments>
+<arg name="i" type="SlotType">The slot to check</arg>
+</arguments>
+<statechange>None</statechange>
+<return>A copy of the equipment associated with the appropriate slot</return>
+</method>
+
+<method name="getExplore/Face/PortraitTex" returntype="int">
+<desc>Returns the texture used for Explore/Face/Portrait</desc>
+<noarguments/>
+<statechange>None</statechange>
+<return>The explore/face/portrait texture id</return>
+</method>
+
+<method name="setExplore/Face/PortraitTex" returntype="void">
+<desc>Sets the texture used for Explore/Face/Portrait</desc>
+<arguments>
+<arg name="t" type="int">The new texture</arg>
+</arguments>
+<statechange>explore/face/portraitTex is changed to t</statechange>
+<return>void</return>
+</method>
+
+<method name="getBattleCommand" returntype="BattleCommand">
+<desc>Returns a copy of a particular BattleCommand</desc>
+<arguments>
+<arg name="i" type="int">The location of the BattleCommand in the vector</arg>
+</arguments>
+<statechange>None</statechange>
+<return>A copy of the BattleCommand at the location i in the vector</return>
+</method>
+
+<method name="getCommandCount" returntype="unsigned int">
+<desc>Returns the number of BattleCommands available</desc>
+<noarguments/>
+<statechange>None</statechange>
+<return>The size of commands</return>
+</method>
+
+<method name="addBattleCommand" returntype="void">
+<desc>Adds a new BattleCommand to the list</desc>
+<arguments>
+<arg name="cmd" type="BattleCommand">A copy of the command to be added</arg>
+</arguments>
+<statechange>cmd is pushed onto command</statechange>
+<return>void</return>
+</method>
+
+<method name="print" returntype="void">
+<desc>Prints the character's information to the terminal</desc>
+<noarguments/>
+<statechange>The character's stats and equipment are printed to the console</statechange>
+<return>void</return>
+</method>
+
+<method name="loadAnimation" returntype="void">
+<desc>Loads the animation information of the character from a file</desc>
+<arguments>
+<arg name="file" type="std::ifstream&amp;">The file from which the information is read</arg>
+</arguments>
+<statechange>The map of animations has new elements added according to the information in the file.</statechange>
+<return>void</return>
+</method>
+
+<method name="setAnimation" returntype="void">
+<desc>Sets the currently running animation sequence</desc>
+<arguments>
+<arg name="name" type="std::string">The name of the sequence</arg>
+</arguments>
+<statechange>If the name can be found in the map of animations, then currentAnimation is changed to point to it.
+Otherwise, no change.</statechange>
+<return>void</return>
+</method>
+
+<method name="updateAnimation" returntype="void">
+<desc>Updates the running animation sequence</desc>
+<noarguments/>
+<statechange>The currentAnimation's frameIndex is updated.</statechange>
+<return>void</return>
+</method>
+
+<method name="getAnimationRect" returntype="Rect">
+<desc>Returns the texture coordinates of the current animation frame</desc>
+<noarguments/>
+<statechange>None</statechange>
+<return>A rect corresponding to the region of the explore tex to use for rendering.</return>
+</method>
+
+</methods-list>
+
+</class>
+
+</spec>

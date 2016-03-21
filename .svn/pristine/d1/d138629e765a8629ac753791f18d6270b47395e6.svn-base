@@ -1,0 +1,38 @@
+#ifndef _EXPLORATIONSTATE_H
+#define _EXPLORATIONSTATE_H
+
+#include "gamestate.h"
+#include "color.h"
+#include "rect.h"
+#include "character.h"
+
+
+class Cell;
+class Font;
+class Tilesheet;
+class ExplorationState : public GameState {
+public:
+	ExplorationState(InputSystem& input);
+	~ExplorationState();
+	
+	void onOpen();
+	void onClose();
+	void onFrame();
+	
+protected:
+private:
+	Rect character, camera;
+	int characterTexture;
+	
+	Cell* level;
+	Tilesheet* tile;
+	
+	const Font* font;
+	unsigned int Stats[STAT_MAX];
+	Character joe;
+	Character eric;
+
+};
+\
+
+#endif

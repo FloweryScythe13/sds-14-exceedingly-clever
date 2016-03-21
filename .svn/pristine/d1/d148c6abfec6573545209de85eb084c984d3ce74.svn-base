@@ -1,0 +1,59 @@
+#ifndef _ANIMATE_
+#define _ANIMATE_
+#include <iostream>
+using namespace std;
+#include "rect.h"
+
+class Animation {
+ public:
+  Animation(string filename, int width, int height, int rows, int columns, bool osc) {
+    ifstream file(filename);
+    framew = width;
+    frameh = height;
+    oscillate = osc;
+    framerows = rows;
+    framecolumns = columns;
+    counter = 0;
+  }
+  Animation(ifstream& file) {}
+   
+ Rect getFrameRect() {
+   int frameNum = frames[frameIndex];
+   int xcoord = frameNum % framew;
+   int ycoord = frameNum / framew;
+   
+   return Rect(xcoord*framew, ycoord*frameh, framew, frameh); 
+ }
+
+ void update() {
+   counter++;
+   if(counter>framedur) {
+     if(oscillate == true && frameIndex == frames.size()-1)
+       frameAdv = -1;
+     if(oscillate == true && frameIndex == 0)
+       frameAdv = 1;
+     if(oscillate == false && frameIndex == frames.size()-1)
+       frameIndex = 0;
+     frameIndex += frameAdv;
+     counter = 0;
+     }
+ }
+
+ protected:
+ unsigned int framew, frameh, framerows, framecolumns;
+ unsigned int framedur;
+ bool oscillate;
+ unsigned int counter;
+ unsigned int frameIndex;
+ vector<int> frames;
+ int frameAdv;
+ bool paused;
+ unsigned int frameNum;
+  
+
+ private:
+
+
+};
+
+#endif

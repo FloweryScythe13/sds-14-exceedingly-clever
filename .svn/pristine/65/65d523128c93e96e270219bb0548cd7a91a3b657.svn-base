@@ -1,0 +1,20 @@
+#include "render.h"
+
+void drawBox(Rect rect) {
+	glBegin(GL_QUADS);
+		glVertex2f(rect.x, rect.y);
+		glVertex2f(rect.x, rect.y + rect.h);
+		glVertex2f(rect.x + rect.w, rect.y + rect.h);
+		glVertex2f(rect.x + rect.w, rect.y);
+	glEnd();
+}
+
+void drawBox(Rect rect, Color c) {
+	glColor4f(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f);
+	glBegin(GL_QUADS);
+		glVertex2f(rect.x, rect.y);
+		glVertex2f(rect.x, rect.y + rect.h);
+		glVertex2f(rect.x + rect.w, rect.y + rect.h);
+		glVertex2f(rect.x + rect.w, rect.y);
+	glEnd();
+}

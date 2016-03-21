@@ -1,0 +1,14 @@
+#ifndef _TEXTURE_
+#define _TEXTURE_
+
+#include <GL/glut.h>
+#include "rect.h"
+
+void drawTexture(int texNum, Rect pos, Rect texcoord,
+	double z = 0.0, double a = 1.0, double rotationAngle = 0.0);
+
+void drawTexture(int texNum, double x, double y, double width, double height, double alpha=1.0, double rotationAngle=0.0);
+void drawTexture(int texNum, double *arr, double alpha=1.0);
+int loadTexture(const char *filename, int* width = 0, int* height = 0);
+
+#endif // _TEXTURE_

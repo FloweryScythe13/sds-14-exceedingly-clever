@@ -1,0 +1,22 @@
+#ifndef _PARTY_H
+#define _PARTY_H
+
+#include "partymember.h"
+
+class Party {
+public:
+	Party();
+	~Party();
+
+	void setMember(int m, PartyMember* c) {member[m] = c;}
+	PartyMember* getMember(int m) {return member[m];}
+
+	static const int MEMBER_COUNT = 2;
+
+protected:
+private:
+	PartyMember* member[MEMBER_COUNT];
+
+};
+
+#endif

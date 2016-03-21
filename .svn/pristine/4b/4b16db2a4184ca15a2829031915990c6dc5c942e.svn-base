@@ -1,0 +1,7 @@
+#include "party.h"
+
+Party::Party() {
+	member[0] = member[1] = 0;
+}
+
+Party::~Party() {}

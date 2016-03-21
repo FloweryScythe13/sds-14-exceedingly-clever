@@ -1,0 +1,16 @@
+#include "label.h"
+#include "render.h"
+
+Label::Label(std::string text, Color tc, const Font* font,
+	const Rect& pos, float z, Widget* parent) :
+	Widget(pos, z, parent), text(text), textColor(tc), font(font) {}
+
+Label::~Label() {}
+
+void Label::draw() {
+	if(!visible) return;
+	drawChildren();
+
+	drawText(font, text.c_str(), textColor,
+		getAbsPos().x, getAbsPos().y, z);
+}

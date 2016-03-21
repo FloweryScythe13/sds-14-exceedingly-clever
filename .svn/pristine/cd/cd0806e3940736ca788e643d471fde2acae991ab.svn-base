@@ -1,0 +1,37 @@
+#ifndef _HOMESCREEN_H
+#define _HOMESCREEN_H
+
+#include "direction.h"
+#include "widget.h"
+
+enum HomeScreenButton {
+	HS_STATUS,
+	HS_ABILITY,
+	HS_EQUIPMENT,
+	HS_FORMATION,
+	HS_ITEM,
+	HS_BESTIARY,
+	HS_MAP,
+	HS_SYSTEM,
+	HS_MAX
+};
+
+class Button;
+class HomeScreen : public Widget {
+public:
+	HomeScreen(const Rect& pos, float z = 0.0f, Widget* parent = 0);
+	~HomeScreen();
+
+	void draw();
+
+	void move(Direction d);
+	void select(HomeScreenButton button);
+
+protected:
+private:
+	Button* activeButton;
+	Button* button[HS_MAX];
+
+};
+
+#endif

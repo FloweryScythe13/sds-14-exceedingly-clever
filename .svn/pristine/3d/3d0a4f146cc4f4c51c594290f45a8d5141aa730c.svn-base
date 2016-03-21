@@ -1,0 +1,70 @@
+#include "character.h"
+
+void Character::initEquip() {
+  slot[SLOT_HEAD].type = EQUIP_HEAD;
+  slot[SLOT_WEAPON].type = EQUIP_WEAPON;
+  slot[SLOT_TORSO].type = EQUIP_TORSO;
+  slot[SLOT_LEGS].type = EQUIP_LEGS;
+  slot[SLOT_ACC1].type = EQUIP_ACC;
+  slot[SLOT_ACC2].type = EQUIP_ACC;
+  slot[SLOT_ACC3].type = EQUIP_ACC;
+}
+
+Character::Character(std::string filename) : level(0), totalExp(0), freeExp(0) {
+	std::ifstream file(filename);
+	if(!file.is_open()) return;
+	readFromFile(file);
+	file.close();
+	initEquip();
+}
+
+Character::Character(std::ifstream& file) {
+	if(!file.is_open()) return;
+	readFromFile(file);
+	initEquip();
+}
+
+Character::Character(std::string name, const StatList& base,
+	unsigned int xp = 0) : name(name), level(0), totalExp(0), freeExp(0), statBase(base) {
+	
+	totalExp = xp;
+	initEquip();
+}
+Character::Character(std::string name, const StatList& base) :
+	name(name), level(0), totalExp(0), freeExp(0), statBase(base) {initEquip();}
+
+Character::~Character() {}
+
+void Character::readFromFile(std::ifstream& file) {
+	file >> name;
+	for(int i = 0; i < STAT_MAX; ++i) {
+		file >> statBase.val[i];
+		statBonus.val[i] = 0;
+		statMod.val[i] = 0;
+		statEff.val[i] = 0;
+	}
+
+	for(int i = 0; i < PRIM_STAT_COUNT; ++i) {
+		statRaise[i] = 0;
+	}
+
+	
+
+
+}
+
+Character::Character(std::string name, const StatList& base,
+	unsigned int xp = 0) : name(name), level(0), totalExp(0), freeExp(0), statBase(base) {
+	
+	totalExp = xp;
+	initEquip();
+}
+Character::Character(std::string name, const StatList& base) :
+  name(name), level(0), totalExp(0), freeExp(0), statBase(base) { initEquip();}
+
+Character::~Character() {}
+
+void Character::equipItem(SlotType i, Equipment gear) {
+  if(slot[i].type!=gear.type) return;
+  slot[i].equip = gear;
+}

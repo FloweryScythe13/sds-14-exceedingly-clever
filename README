@@ -1,0 +1,57 @@
+Desolation Instructions
+
+To play the game, the following keys are used:
+
+	ACCEPT		z
+	CANCEL		x
+	MENU		c
+	CHANGE1		a
+	CHANGE2		s
+	Directional keys
+	
+When playing the game, use the directional keys to navigate
+through the map or through a menu (key repeat is off).
+
+To move through dialogue, press the ACCEPT button.
+To select an option in a menu (identified by a highlighted
+box with text), also press the ACCEPT button.
+
+When in a submenu, you can press CANCEL to move back to the
+previous screen.
+
+When viewing the Status or Equipment menus, the CHANGE buttons
+can be used to select the character to view.
+
+The game starts out on the map. You can talk to the NPCs lying
+around or open the menu with the MENU button. The Status and
+Equipment screens enable you to view the statistics and
+change the equipment of the two characters, Elma and Ardy.
+
+You can navigate to the top right corner of the starting
+area to move into a new location. In this area, random battles
+may occur at a rate of ~3% every time a step is taken.
+
+During battle, ATB bars in the bottom right indicate whether
+a character is ready to act. A red bar (and an asterisk by
+the character name) indicates that the character is currently
+acting (a list of available commands will appear). A yellow
+bar indicates a character who is ready, but is waiting for
+another character to finish acting. To the right of these
+bars in the HP of the characters.
+
+Upon selecting a command, a new dialog will appear to choose
+a target for the command (one of the enemies). Once a target
+is chosen, damage will be dealt to the enemy (displayed in
+the console). Any character (both player and enemy) whose
+HP is reduced to 0 will be unable to battle and will not
+take actions or be valid targets for attacks.
+
+When the HP of all enemies is reduced to 0, the battle is
+finished and the player is victorious, returning to the map.
+When the HP of all player characters is reduced to 0, the
+player is defeated.
+
+There are additional commands for debugging purposes:
+
+	y		Forcefully initiates a battle
+	e		Forcefully quits a battle (no victory)

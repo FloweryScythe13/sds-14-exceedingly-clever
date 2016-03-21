@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE spec SYSTEM "http://www.cs.stolaf.edu/lib/SpecML/SpecML.dtd">
+<?xml-stylesheet
+   href="http://www.cs.stolaf.edu/lib/SpecML/SpecMLToHTML.xsl"
+   type="text/xsl"?>
+
+<spec>
+<title>The Exploration State Class Specification;</title>
+<header>This class handles the creation and management of cells for exploring;</header>
+<credits>Joe Jung, Eric Brichetto;</credits>
+
+<class name="ExplorationState">
+<desc>Represents exploration mode.</desc>
+<superclass name="GameState">
+</superclass>
+
+<variables>
+<var name="character" type="Rect" visibility="private">The rectangle displaying the character</var>
+<var name="camera" type="Rect" visibility="private">The rectangle representing the camera, which displays the cell tiles around the character</var>
+<var name="characterFacing" type="CharDirection" visibility="private">The enum type representing the direction in which the character is currently facing (a.k.a. the currently drawn frame for the character sprite). </var>
+<var name="charTileX" type="int" visibility="private">The current x-position of the character in the current cell in terms of the cell's tile coordinates. </var>
+<var name="charTileY" type="int" visibility="private">The current y-position of the character in the current cell in terms of the cell's tile coordinates. </var>
+<var name="targetTileX" type="int" visibility="private">The x-coordinate of the tile to which the character moves from its current tile location. </var>
+<var name="targetTileY" type="int" visibility="private">The y-coordinate of the tile to which the character moves. </var>
+<var name="charIsMoving" type="bool" visibility="private"> Marks whether the character is moving between tiles.</var>
+<var name="queueMove" type="bool" visibility="private"> Queues up a move if the character is already moving.</var>
+<var name="charSpeed" type="float" visibility="private"> Represents the speed of the character's movement between tiles.</var>
+<var name="finishedMovement" type="bool" visibility="private"> Marks whether the character has finished moving to a new tile. </var>
+<var name="level" type="Cell*" visibility="private"> Stores the address of the currently selected cell.</var>
+<var name="party" type="Party" visibility="private"> A class containing a vector of PartyMember pointers and a vector of unsigned int IDs for the partymembers' equipment list.</var>
+<var name="ardy" type="PartyMember*" visibility="private"> A pointer to a dynamically allocated PartyMember, to be allocated in this case with the information for the character Ardy. </var>
+<var name="elma" type="PartyMember*" visibility="private"> As above, except with the information for the character Elma. </var>
+<var name="font" type="const Font*" visibility="private"> A pointer to a dynamically allocated Font, which is loaded from a file and created in the ExplorationState constructor. </var>
+<var name="inConversation" type="bool" visibility="private"> A marker for whether the dialogue screen is currently being drawn. </var>
+<var name="dialogue" type="vector&lt string&rt" visibility="private">A vector that stores the strings of dialogue to be displayed on screen when in conversation with a given NPC. </var>
+<var name="dialogueScreen" type="dialogueScreen" visibility="private">An index for the specific line of text in a conversation to be displayed in the dialogue window. </var>
+</variables>
+
+<constructors-list>
+
+<constructor>
+<desc>ExplorationState</desc>
+<arguments>
+<arg name="input" type="InputSystem&amp;">The particular state input, to be passed into GameState.</arg>
+</arguments>
+<statechange>Initializes GameState with the input argument. Constructs the camera Rect as a 640x480 pixel rectangle at location (0,0), taking up the entire window. Creates a new Cell using the file levels/StarterArea and assigns its address to the level variable. Creates new PartyMembers using char/ardy.txt and char/elma.txt, assigns them to the ardy and elma pointers, and then adds these PartyMembers to the party. Initializes the default animations of the PartyMembers to the walk_down frame, and adds the Burninate, Omnislash, Hadouken, and Rain of Arrows battle commands to elma and ardy. Initializes the values of characterFacing, charTile_, and targetTile_, constructs the character Rect at the charTile_ location, and sets charIsMoving, queueMove, finishedMovement, and inConversation to false. Sets charSpeed to 4. Loads the information from fonts/FFVI.ttf into the fonts variable. Sets dialogueScreen to 0. </statechange>
+</constructor>
+</constructors-list>
+
+<destructor>
+<desc>~ExplorationState</desc>
+<statechange>Releases the memory stored in level, ardy, and elma. </statechange>
+</destructor>
+
+<methods-list>
+
+<method name="onOpen" returntype="void">
+<desc>Called after ExplorationState is constructed and whenever it resumes from being paused.</desc>
+<arguments>
+<arg name="none"></arg>
+</arguments>
+<statechange>Sets the variables running and finished (inherited from GameState) to true. </statechange>
+</method>
+
+<method name="onClose" returntype="void">
+<desc>Called when explorationState is closed.</desc>
+<arguments>
+<arg name="none"></arg>
+</arguments>
+<statechange>Sets nextState as a null pointer.</statechange>
+</method>
+
+<method name="onFrame" returntype="void">
+<desc>Handles the various processes done every frame.</desc>
+<arguments>
+<arg name="none"></arg>
+</arguments>
+<statechange>Creates a new MainMenuState or BattleState if the player taps the 'c' or 'y' keys, respectively. If a new battlestate, it also creates a randomly-sized array of CombatChar pointers, initializes enemy characters for those pointers, sends those pointers as arguments for BattleState, deletes the enemies array, and pauses. Checks key input for movement, calls movePlayer(), and updates the character animation accordingly. Handles the calling, drawing, and advancement of text in dialogue windows with NPCs. Checks whether the position of the character is equal to the location of the warp tile and changes the necessary variables accordingly in order to change to a different level. Calculates a random number in modulus 100 to represent the chance of entering a battle - if that number is less than 3, initializes a new BattleState accordingly. Updates the center of the camera to follow the position of the character, with appropriate bound checks. Finally, draws the camera. </statechange>
+</method>
+<method name="movePlayer" returntype="void">
+<desc>Handles the updating of the character's position.</desc>
+<arguments>
+<arg name="none"></arg>
+</arguments>
+<statechange>Checks the current direction of the character and handles all updating of the character position, and checks to ensure that the character does not move into a tile with collision enabled. </statechange>
+</method>
+<method name="isOnMap" returntype="bool">
+<desc>Checks whether the character is within the bounds of the map</desc>
+<arguments>
+<arg name="tilex" type="int">The x-tile coordinate of the character.</arg>
+<arg name="tiley" type="int">The y-tile coordinate of the character.</arg>
+</arguments>
+<statechange>Returns false if tilex and tiley are not both within the size of level.</statechange>
+</method>
+<method name="getNPCDialogue" returntype="bool"> 
+<desc>Retrieves the dialogue text of an NPC.</desc>
+<arguments>
+<arg name="dir" type="CharDirection">The direction in which the character is currently facing.</arg>
+<arg name="text" type="vector &lt string&gt">The lines of text to be displayed in the dialogue window.</arg>
+</arguments>
+<statechange>Gets the NPC from whichever tile the character is adjacent to and facing, then calls the dialogue from that NPC.</statechange>
+</method>
+</methods-list>
+
+</class>
+
+</spec>

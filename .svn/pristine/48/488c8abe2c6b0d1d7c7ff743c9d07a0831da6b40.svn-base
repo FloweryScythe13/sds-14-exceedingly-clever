@@ -1,0 +1,92 @@
+#ifndef _CHARACTER_H
+#define _CHARACTER_H
+
+#include <fstream>
+#include <iostream>
+#include <string>
+#include "stats.h"
+
+class Character {
+public:
+	Character();
+	Character(std::string name);
+	Character(std::ifstream& file);
+	Character(std::string name, const StatList& base, unsigned int xp);
+	Character(std::string name, const StatList& base);
+	~Character();
+
+	void readFromFile(std::ifstream& file);
+	//Getting and setting character statistics
+	std::string getName() const {return name;}
+	void setName(std::string n) {name = n;}
+
+	int getStatBase(unsigned int i) {return statBase.val[i];}
+	int getStatRaise(unsigned int i) {return statRaise[i];}
+	int getStatBonus(unsigned int i) {return statBonus.val[i];}
+	int getStatMod(unsigned int i) {return statMod.val[i];}
+	
+	void setStatRaise(unsigned int index, int j) {statRaise[index] = j;}
+	void updateEffStats() {}
+	void setLevel(unsigned int val) {level = val;}
+	unsigned int getLevel() const {return level;}
+
+	//Getters and setters for Experience points
+	void addTotalExp(unsigned int val) {totalExp +=  val;}
+	void setTotalExp(unsigned int val) {totalExp = val;}
+	unsigned int getTotalExp() const {return totalExp;}
+
+	void addFreeExp(unsigned int val) {freeExp += val;}
+	void subFreeExp(unsigned int val) {freeExp -= val;}
+	void setFreeExp(unsigned int val) {freeExp = val;}
+	unsigned int getFreeExp() const {return freeExp;}
+	
+
+
+
+
+
+	void displayall() {
+	  std::cout << name << std::endl;
+	  std::cout << level << " " << totalExp << std::endl;
+	  for( int i = 0; i < STAT_MAX; ++i)
+	    std::cout << statBase.val[i] << " ";
+	  std::cout << std::endl;
+	}
+	
+	void displaycore() {
+	  std::cout << name << std::endl;
+	  std::cout << "Level " << level << " " << totalExp << "EXP" << std::endl;
+	  for( int i = 0; i < 4; ++i)
+	    std::cout << statBase.val[i] << " ";
+	  std::cout << std::endl;
+	}
+
+protected:
+	std::string name;
+
+	unsigned int level;
+	unsigned int totalExp;
+	unsigned int freeExp;
+
+	StatList statBase;
+	int statRaise[4];
+	StatList statBonus;
+	StatList statMod;
+	StatList statEff;
+
+	const int AVERAGE_VAL = 3;
+	const int AVERAGE_MAGVAL = 1;
+	//Abilities
+	//Inventory
+	
+	EquipSlot slots[SLOT_MAX];//0=weapon, 1=head, 2=torso, 3=legs, 4-6=acc
+	
+	
+
+
+	
+private:
+	void initEquip();
+};
+
+#endif

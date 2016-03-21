@@ -1,0 +1,122 @@
+#include <iostream>
+#include "button.h"
+#include "homescreen.h"
+#include "inputsystem.h"
+#include "imagebox.h"
+#include "party.h"
+#include "render.h"
+
+HomeScreen::HomeScreen(Party& p, const Rect& pos, float z, Widget* parent) :
+	MenuScreen(pos, z, parent), party(p) {
+	nextMode = MENU_HOME;
+
+	int offTex = loadTexture("images/buttonbase.pam");
+	int onTex = loadTexture("images/buttonselected.pam");
+
+	const Font* font = loadFont("fonts/FFVI.ttf", 32);
+
+	Button* b = 0;
+	b = new Button(offTex, onTex, "Status",
+		Color(255, 255, 255), font, Rect(25, 32, 128, 32));
+	button.push_back(b);
+	b = new Button(offTex, onTex, "Ability",
+		Color(255, 255, 255), font, Rect(25, 64, 128, 32));
+	button.push_back(b);
+	b = new Button(offTex, onTex, "Equipment",
+		Color(255, 255, 255), font, Rect(25, 96, 128, 32));
+	button.push_back(b);
+	b = new Button(offTex, onTex, "Formation",
+		Color(255, 255, 255), font, Rect(25, 128, 128, 32));
+	button.push_back(b);
+	b = new Button(offTex, onTex, "Item",
+		Color(255, 255, 255), font, Rect(25, 160, 128, 32));
+	button.push_back(b);
+	b = new Button(offTex, onTex, "Bestiary",
+		Color(255, 255, 255), font, Rect(25, 192, 128, 32));
+	button.push_back(b);
+	b = new Button(offTex, onTex, "Map",
+		Color(255, 255, 255), font, Rect(25, 224, 128, 32));
+	button.push_back(b);
+	b = new Button(offTex, onTex, "System",
+		Color(255, 255, 255), font, Rect(25, 256, 128, 32));
+	button.push_back(b);
+
+	for(int i = HS_STATUS; i < HS_MAX; ++i) {
+		addChild(button[i]);
+		if(i > HS_STATUS)
+			button[i]->setNext(DIR_UP, button[i - 1]);
+		if(i < HS_MAX - 1)
+			button[i]->setNext(DIR_DOWN, button[i + 1]);
+	}
+
+	activeButton = button[HS_STATUS];
+	activeButton->setSelected(1);
+
+	ImageBox* image;
+	image = new ImageBox(party.getMember(1)->getPortraitTex(),
+		Rect(350, 100, 128, 256), z);
+	addChild(image);
+}
+
+HomeScreen::~HomeScreen() {}
+
+void HomeScreen::draw() {
+	if(!visible) return;
+	drawChildren();
+}
+
+void HomeScreen::handleInput(InputSystem& input) {	
+	if(input.checkKeyState("up"))
+		move(DIR_UP);
+	if(input.checkKeyState("down"))
+		move(DIR_DOWN);
+	if(input.checkKeyState("left"))
+		move(DIR_LEFT);
+	if(input.checkKeyState("right"))
+		move(DIR_RIGHT);
+	if(input.checkKeyState("z")) {
+		HomeScreenMode mode = (HomeScreenMode)getMode();
+		switch(mode) {
+		case HS_STATUS:
+			nextMode = MENU_STATUS;
+			break;
+		case HS_ABILITY:
+			nextMode = MENU_ABILITY;
+			break;
+		case HS_EQUIPMENT:
+			nextMode = MENU_EQUIPMENT;
+			break;
+		case HS_FORMATION:
+			nextMode = MENU_FORMATION;
+			break;
+		case HS_ITEM:
+			nextMode = MENU_ITEM;
+			break;
+		case HS_BESTIARY:
+			nextMode = MENU_BESTIARY;
+			break;
+		case HS_MAP:
+			nextMode = MENU_MAP;
+			break;
+		case HS_SYSTEM:
+			nextMode = MENU_SYSTEM;
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+void HomeScreen::select(HomeScreenMode mode) {
+	activeButton->setSelected(0);
+	activeButton = button[mode];
+	activeButton->setSelected(1);
+}
+
+int HomeScreen::getMode() const {
+	for(int i = HS_STATUS; i < HS_MAX; ++i) {
+		if(button[i] == activeButton) return i;
+	}
+
+	return -1;
+}

@@ -1,0 +1,23 @@
+#include "button.h"
+#include "render.h"
+
+Button::Button(int offTexture, int onTexture, std::string text, Color tc,
+	const Font* font, const Rect& pos, float z, Widget* parent) :
+	Label(text, tc, font, pos, z, parent),
+	offTex(offTexture), onTex(onTexture), highlight(0), activeFunc(0) {}
+
+Button::~Button() {}
+
+void Button::draw() {
+	if(!visible) return;
+	drawChildren();
+
+	if(highlight) {
+		drawTexture(onTex, getAbsPos(), z + .0001);
+	} else {
+		drawTexture(offTex, getAbsPos(), z + .0001);
+	}
+
+	drawText(font, text.c_str(), textColor,
+		getAbsPos().x, getAbsPos().y, z);
+}

@@ -1,0 +1,52 @@
+#include <iostream>
+#include "direction.h"
+#include "inputsystem.h"
+#include "homescreen.h"
+#include "mainmenustate.h"
+#include "render.h"
+
+MainMenuState::MainMenuState(InputSystem& input) : GameState(input) {
+	background = loadTexture("images/menubackground.pam");
+	
+	homeScreen = new HomeScreen(Rect(0, 0, 640, 480));
+	finished = false;
+}
+
+MainMenuState::~MainMenuState() {
+	delete homeScreen;
+}
+
+void MainMenuState::onOpen() {
+	running = true;
+	finished = true;
+}
+
+void MainMenuState::onClose() {
+	nextState = 0;
+}
+
+void MainMenuState::onFrame() {
+	if(input.checkKeyState("x", KEYSTATE_TAP)) {
+		std::cout << "Switching to exploration\n";
+		running = false;
+	}
+
+	if(input.checkKeyState("up", KEYSTATE_TAP)) {
+		homeScreen->move(DIR_UP);
+	}
+
+	if(input.checkKeyState("down", KEYSTATE_TAP)) {
+		homeScreen->move(DIR_DOWN);
+	}
+
+	if(input.checkKeyState("left", KEYSTATE_TAP)) {
+		homeScreen->move(DIR_LEFT);
+	}
+
+	if(input.checkKeyState("right", KEYSTATE_TAP)) {
+		homeScreen->move(DIR_RIGHT);
+	}
+
+	drawTexture(background, {0, 0, 640, 480}, {0, 0, 640, 480}, 10);
+	homeScreen->draw();
+}

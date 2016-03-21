@@ -1,0 +1,57 @@
+#include <iostream>
+using namespace std;
+#include "inputsystem.h"
+#include "direction.h"
+#include "render.h"
+#include "battlestate.h"
+
+BattleState::BattleState(InputSystem& input, Party& party) : GameState(input), party(party) {
+  background = loadTexture("images/combatbackgroundplains.pam"); 
+  
+  //Logic for initializing the combat menu buttons and their submenus
+
+  finished = false;
+  counter = 0; 
+  rate = 20;
+  isPaused = false;
+
+}
+
+BattleState::~BattleState() {}
+
+void BattleState::onOpen() {
+  running = true;
+  finished = true;
+  isPaused = false;
+}
+
+void BattleState::onClose() {
+  nextState = 0;
+}
+
+void BattleState::onFrame() {
+  //Note: the below key input is for testing purposes. For functional gameplay, this guard should check the status of the bool combatCompleted variable 
+  
+  if(input.checkKeyState("e")) {
+      std::cout << "Switching to exploration\n";
+      running = false;
+    }
+
+  drawTexture(background, {0, 0, 640, 480}, {0, 0, 640, 480}, 10);
+
+  if(++counter >= rate) {
+    counter = 0;
+    // Anything to be done every twenty frames
+  }
+
+  ardy.atb += 5 + ardy.getStatEff(3)/3;
+  elma.atb += 5 + elma.getStatEff(3)/3;
+  
+  
+    
+
+
+
+}
+    
+

@@ -1,0 +1,40 @@
+#ifndef _ANIMATE_
+#define _ANIMATE_
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+#include "rect.h"
+#include<vector>
+
+class Animation {
+ public:
+	Animation();
+	Animation(ifstream& file);
+ 	Rect getFrameRect() const;
+	
+ 	void update();
+	
+	void pause() {paused = true;}
+	void run() {paused = false;}
+	void restart() {frameIndex = 0;}
+	
+	std::string getName() const {return name;}
+
+ protected:
+ std::string name;
+ unsigned int framew, frameh, framerows, framecolumns;
+ unsigned int framedur;
+ bool oscillate;
+ unsigned int counter;
+ unsigned int frameIndex;
+ std::vector<unsigned int> frames;
+ int frameAdv;
+ bool paused;
+
+ private:
+
+
+};
+
+#endif

@@ -1,0 +1,54 @@
+#include <iostream>
+#include "button.h"
+#include "homescreen.h"
+#include "render.h"
+
+HomeScreen::HomeScreen(const Rect& pos, float z, Widget* parent) :
+	Widget(pos, z, parent) {
+
+	int offTex = loadTexture("images/buttonbase.pam");
+	int onTex = loadTexture("images/buttonselected.pam");
+
+	const Font* font = loadFont("fonts/FFVI.ttf", 32);
+
+	button[HS_STATUS] = new Button(offTex, onTex, "Status",
+		Color(255, 255, 255), font, Rect(25, 32, 128, 32));
+	button[HS_ABILITY] = new Button(offTex, onTex, "Ability",
+		Color(255, 255, 255), font, Rect(25, 64, 128, 32));
+	button[HS_EQUIPMENT] = new Button(offTex, onTex, "Equipment",
+		Color(255, 255, 255), font, Rect(25, 96, 128, 32));
+	button[HS_FORMATION] = new Button(offTex, onTex, "Formation",
+		Color(255, 255, 255), font, Rect(25, 128, 128, 32));
+	button[HS_ITEM] = new Button(offTex, onTex, "Item",
+		Color(255, 255, 255), font, Rect(25, 160, 128, 32));
+	button[HS_BESTIARY] = new Button(offTex, onTex, "Bestiary",
+		Color(255, 255, 255), font, Rect(25, 192, 128, 32));
+	button[HS_MAP] = new Button(offTex, onTex, "Map",
+		Color(255, 255, 255), font, Rect(25, 224, 128, 32));
+	button[HS_SYSTEM] = new Button(offTex, onTex, "System",
+		Color(255, 255, 255), font, Rect(25, 256, 128, 32));
+
+	for(int i = HS_STATUS; i < HS_MAX; ++i) {
+		addChild(button[i]);
+		if(i > HS_STATUS)
+			button[i]->setNext(DIR_UP, button[i - 1]);
+		if(i < HS_MAX - 1)
+			button[i]->setNext(DIR_DOWN, button[i + 1]);
+	}
+
+	activeButton = button[HS_STATUS];
+	activeButton->setSelected(1);
+}
+
+HomeScreen::~HomeScreen() {}
+
+void HomeScreen::move(Direction d) {
+	if(!activeButton) return;
+	if(!activeButton->getNext(d)) return;
+	activeButton = activeButton->move(d);
+}
+
+void HomeScreen::draw() {
+	if(!visible) return;
+	drawChildren();
+}

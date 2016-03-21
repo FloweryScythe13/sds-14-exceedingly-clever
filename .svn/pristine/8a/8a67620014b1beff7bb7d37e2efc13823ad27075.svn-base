@@ -1,0 +1,15 @@
+#include<iostream>
+using namespace std;
+#ifndef _TILES_
+#def _TILES_
+#include "Rect.h"
+
+class Tilesheet {
+  int texture;
+  Rect tileRegion[256];
+ public:
+  Tilesheet(std::string);
+  Tilesheet(int texture);
+  int getTexture();
+  Rect getTileRegion(int);
+  Rect getTileRegion(int, int);

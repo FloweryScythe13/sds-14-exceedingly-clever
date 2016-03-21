@@ -1,0 +1,11 @@
+#include "menuoptionwidget.h"
+#include "render.h"
+
+MenuOptionWidget::MenuOptionWidget(const Rect& region, int offTexture,
+	int onTexture, Widget* parent) : Widget(region, offTexture, parent),
+		unselectedTexture(offTexture), selectedTexture(onTexture) {}
+		
+MenuOptionWidget::~MenuOptionWidget() {}
+
+void MenuOptionWidget::select() {texture = selectedTexture;}
+void MenuOptionWidget::unselect() {texture = unselectedTexture;}

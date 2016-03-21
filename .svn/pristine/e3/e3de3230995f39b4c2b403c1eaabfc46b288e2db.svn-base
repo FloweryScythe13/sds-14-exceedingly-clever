@@ -1,0 +1,66 @@
+#include <iostream>
+#include <GL/freeglut.h>
+#include <GL/gl.h>
+#include "engine.h"
+#include "render.h"
+
+Engine::Engine(const char* wname, unsigned int width, unsigned int height) :
+	width(width), height(height), windowName(wname), window(0) {
+
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+
+	window = SDL_CreateWindow(wname, SDL_WINDOWPOS_CENTERED,
+		SDL_WINDOWPOS_CENTERED, width, height,
+		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+
+	context = SDL_GL_CreateContext(window);
+	
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearDepth(1.0f);
+}
+
+Engine::~Engine() {
+	SDL_GL_DeleteContext(context);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+}
+
+void Engine::run() {
+	unsigned int start = 0;
+	bool quit = false;
+	while(!quit) {
+		//Check if the user wishes to close the program
+		quit = input.update();
+		if(input.checkKeyState("escape", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+			quit = true;
+		}
+		
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(0.0, width, height, 0.0, 0.0, -100.0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	//Clear screen
+		//Start Logic
+		
+		drawBox({0, 0, 100, 100}, {255, 0, 255, 255}, 2);
+		drawBox({25, 25, 100, 100}, {255, 0, 0, 255}, 5);
+		drawBox({50, 50, 100, 100}, {0, 0, 255, 255}, 3);
+
+		
+		//End Logic
+		SDL_GL_SwapWindow(window);
+
+		//Limit frames per second to 60
+		if((unsigned int)60 * (SDL_GetTicks() - start) < 1000) {
+			SDL_Delay((1000 / 60) - (SDL_GetTicks() - start));
+		}
+
+		start = SDL_GetTicks();
+		SDL_Delay(1);
+	}
+}

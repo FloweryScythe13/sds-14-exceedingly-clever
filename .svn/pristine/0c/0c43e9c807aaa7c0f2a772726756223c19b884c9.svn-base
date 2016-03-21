@@ -1,0 +1,84 @@
+#include <iostream>
+using namespace std;
+#include "battlestate.h"
+#include "button.h"
+#include "combatchar.h"
+#include "direction.h"
+#include "imagebox.h"
+#include "inputsystem.h"
+#include "label.h"
+#include "party.h"
+#include "render.h"
+#include "widget.h"
+
+BattleState::BattleState(InputSystem& input, Party& party, CombatChar** e,
+	int numEnem) :	GameState(input), party(party) {
+
+	finished = true;
+	counter = 0;	
+	rate = 20;
+	isPaused = false;
+	mode = BATTLE_IDLE;
+
+	background = loadTexture("images/beach.pam"); 
+	int labelTex = loadTexture("images/buttonbase.pam");
+	int buttonOn = loadTexture("images/buttonselected.pam");
+	int buttonOff = loadTexture("images/buttonbase.pam");
+	int boxTex = loadTexture("images/blank.pam");
+
+	//Logic for initializing the combat parties
+	for(int i = 0; i < Party::MEMBER_COUNT; ++i) {
+		player.push_back(new CombatChar(*party.getMember(i)));
+	}
+
+	for(int i = 0; i < numEnem; ++i) {
+		enemies.push_back(e[i]);
+	}
+
+	//Widget creation
+	Rect pos(0.0f, 0.0f, 640.0f, 480.0f);
+	mainGUI = new Widget(pos, 0.0f);
+	
+	Rect commandBoxPos(0.0f, 320.0f, 120.0f, 160.0f);
+	commandBox = new Widget(commandBoxPos, 0.0f, mainGUI);
+
+	Rect
+}
+
+BattleState::~BattleState() {
+	delete mainGUI;
+	for(unsigned int i = 0; i < player.size(); ++i) {
+		delete player[i];
+	}
+
+	for(unsigned int i = 0; i < enemies.size(); ++i) {
+		delete enemies[i];
+	}
+}
+
+void BattleState::onOpen() {
+	running = true;
+	finished = true;
+	isPaused = false;
+}
+
+void BattleState::onClose() {
+	nextState = 0;
+}
+
+void BattleState::onFrame() {
+	//Note: the below key input is for testing purposes. For functional gameplay, this guard should check the status of the bool combatCompleted variable 
+	
+	if(input.checkKeyState("e")) {
+		std::cout << "Switching to exploration\n";
+		running = false;
+	}
+
+	if(++counter >= rate) {
+		counter = 0;
+		// Anything to be done every twenty frames
+	}
+
+	drawTexture(background, {0, 0, 640, 480}, {0, 0, 640, 480}, 10);
+	mainGUI->draw();
+}

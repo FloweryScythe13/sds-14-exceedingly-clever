@@ -1,0 +1,31 @@
+#ifndef _COMBATCHAR_H
+#define _COMBATCHAR_H
+
+#include "battlecmd.h"
+#include "character.h"
+
+class CombatChar : public Character {
+ public:
+	CombatChar(const Character& character);
+	bool checkATB() const {
+		return (atb == 100);
+	}
+
+	bool performCommand(unsigned int cmd, CombatChar* target,
+		int* damageVal = 0);
+
+	void addCurrentHP(int val) {currentHP += val;}
+	void setCurrentHP(int val) {currentHP = val;}
+	int getCurrentHP() const {return currentHP;}
+
+ protected:
+ 
+
+ private:
+	int atb;
+	int currentHP;
+};
+	
+
+
+#endif

@@ -1,0 +1,63 @@
+#include <iostream>
+using namespace std;
+#include "inputsystem.h"
+#include "direction.h"
+#include "render.h"
+#include "battlestate.h"
+
+BattleState::BattleState(InputSystem& input, Party& party) : GameState(input), party(party) {
+  background = loadTexture("images/combatbackgroundplains.pam"); 
+  menubackground = loadTexture("images/buttonbase.pam");
+  //Logic for initializing the combat menu buttons and their submenus
+  player.push_back(party.getMember(0), party.getMember(1));
+  
+  finished = false;
+  counter = 0; 
+  rate = 20;
+  isPaused = false;
+  
+}
+
+BattleState::~BattleState() {}
+
+void BattleState::onOpen() {
+  running = true;
+  finished = true;
+  isPaused = false;
+}
+
+void BattleState::onClose() {
+  nextState = 0;
+}
+
+void BattleState::onFrame() {
+  //Note: the below key input is for testing purposes. For functional gameplay, this guard should check the status of the bool combatCompleted variable 
+  
+  if(input.checkKeyState("e")) {
+      std::cout << "Switching to exploration\n";
+      running = false;
+    }
+
+  drawTexture(background, {0, 0, 640, 480}, {0, 0, 640, 480}, 10);
+
+  if(++counter >= rate) {
+    counter = 0;
+    // Anything to be done every twenty frames
+  }
+
+  Rect combatmenu(50, 300, 580, 150);
+
+  //for(int i = 0; i < MEMBER_COUNT; ++i) {
+  // if(player[i]->ATBisFull())
+      //player[i]->widget.drawTexture(enabledtexture.pam) etc. 
+      //player[i]->widget.isEnabled = true;
+      
+      drawTexture(menubackground, combatmenu, combatmenu, 10);
+  
+    
+
+
+
+}
+    
+

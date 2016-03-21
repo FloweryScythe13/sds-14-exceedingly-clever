@@ -1,0 +1,25 @@
+#ifndef _MAINMENUSTATE_H
+#define _MAINMENUSTATE_H
+
+#include "gamestate.h"
+#include "homescreen.h"
+
+class InputSystem;
+class MainMenuState : public GameState {
+public:
+	MainMenuState(InputSystem& input);
+	~MainMenuState();
+	
+	void onOpen();
+	void onClose();
+	void onFrame();
+	
+protected:
+private:
+	int background;
+
+	HomeScreen* homeScreen;
+
+};
+
+#endif

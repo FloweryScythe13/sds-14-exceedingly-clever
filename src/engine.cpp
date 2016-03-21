@@ -1,0 +1,115 @@
+#include <iostream>
+#include <vector>
+#include <GL/gl.h>
+#include "engine.h"
+#include "font.h"
+#include "render.h"
+#include "gamestate.h"
+#include "explorationstate.h"
+#include "equipment.h"
+#include "battlestate.h"
+
+Engine::Engine(const char* wname, unsigned int width, unsigned int height) :
+	width(width), height(height), windowName(wname), window(0), finished(0) {
+
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+
+	window = SDL_CreateWindow(wname, SDL_WINDOWPOS_CENTERED,
+		SDL_WINDOWPOS_CENTERED, width, height,
+		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+
+	context = SDL_GL_CreateContext(window);
+	
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.1);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearDepth(1.0f);
+	
+	initFont();
+	loadTexture("images/blank.pam");
+	Equipment::loadEquipmentList("data/equip.txt");
+}
+
+Engine::~Engine() {
+	SDL_GL_DeleteContext(context);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+}
+
+void Engine::run(GameState& state) {
+	state.onOpen();
+	
+	unsigned int start = 0;
+	bool quit = false;
+	
+	while(!quit && !finished) {
+		if(!state.isRunning()) break;
+	
+		//Check if the user wishes to close the program
+		finished = input.update();
+		if(input.checkKeyState("escape", KEYSTATE_TAP)) {
+			quit = true;
+			finished = true;
+		}
+		
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(0.0, width, height, 0.0, 0.0, -100.0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	//Clear screen
+		//Start Logic
+		
+		state.onFrame();
+		
+		//End Logic
+		SDL_GL_SwapWindow(window);
+
+		//Limit frames per second to 60
+		if((unsigned int)60 * (SDL_GetTicks() - start) < 1000) {
+			SDL_Delay((1000 / 60) - (SDL_GetTicks() - start));
+		}
+
+		start = SDL_GetTicks();
+		SDL_Delay(1);
+	}
+}
+
+void Engine::start() {
+	GameState* current = new ExplorationState(input);
+	std::vector<GameState*> stateStack;
+	
+	while(current || stateStack.size()) {
+		if(!current) {
+			current = stateStack.back();
+			stateStack.pop_back();
+		}
+		
+		if(finished) {
+			delete current;
+			current = 0;
+		} else {
+			run(*current);
+		
+			GameState* previous = current;
+			current = current->getNextState();
+			previous->onClose();
+		
+			if(previous->isFinished()) {
+				delete previous;
+				previous = 0;
+			} else {
+				stateStack.push_back(previous);
+				previous = 0;
+			}
+		}
+	}
+}

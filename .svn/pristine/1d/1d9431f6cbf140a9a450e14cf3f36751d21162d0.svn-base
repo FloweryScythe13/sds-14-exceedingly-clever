@@ -1,0 +1,148 @@
+#include <cstdlib>
+#include <iostream>
+#include "battlestate.h"
+#include "explorationstate.h"
+#include "mainmenustate.h"
+#include "color.h"
+#include "cell.h"
+#include "inputsystem.h"
+#include "rect.h"
+#include "render.h"
+#include "tiles.h"
+#include "partymember.h"
+#include "equipment.h"
+#include "combatchar.h"
+
+ExplorationState::ExplorationState(InputSystem& input) :
+	GameState(input), level(0), tile(0) {
+	character = Rect{0.0f, 0.0f, 32.0f, 32.0f};
+	camera = Rect{0.0f, 0.0f, 640.0f, 480.0f};
+	
+	//tile = new Tilesheet("images/test.pam");
+	level = new Cell("levels/test");
+
+	ardy = new PartyMember("char/ardy.txt");
+	elma = new PartyMember("char/elma.txt");
+	party.setMember(0, ardy);
+	party.setMember(1, elma);
+}
+
+ExplorationState::~ExplorationState() {
+	delete level;
+	//delete tile;
+	delete ardy;
+	delete elma;
+}
+
+void ExplorationState::onOpen() {
+	running = true;
+	finished = true;
+}
+
+void ExplorationState::onClose() {
+	nextState = 0;
+}
+
+void ExplorationState::onFrame() {
+	if(input.checkKeyState("c", KEYSTATE_TAP)) {
+		nextState = new MainMenuState(input, party);
+		finished = false;
+		running = false;
+		std::cout << "Switching to main menu\n";
+	}
+
+	if(input.checkKeyState("y")) {
+		int enemyCount = rand() % 4 + 1;
+		CombatChar** enemies = new CombatChar*[enemyCount];
+		for(int i = 0; i < enemyCount; ++i) {
+			enemies[i] = new CombatChar(
+				Character("char/malboro.txt"));
+		}
+
+		nextState = new BattleState(input, party,
+			enemies, enemyCount);
+
+		delete[] enemies;
+		running = false;
+		finished = false;
+
+		std::cout << "Switching to battle mode\n";
+	}
+	
+	if(input.checkKeyState("a", KEYSTATE_TAP)) {
+		delete level;
+		level = new Cell("levels/test");
+	}
+	
+	if(input.checkKeyState("s", KEYSTATE_TAP)) {
+		delete level;
+		level = new Cell("levels/test2");
+	}
+	
+	if(input.checkKeyState("up", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+		character.y -= 5;
+	}
+	if(input.checkKeyState("down", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+		character.y += 5;
+	}
+	if(input.checkKeyState("left", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+		character.x -= 5;
+	}
+	if(input.checkKeyState("right", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+		character.x += 5;
+	}
+	
+	if(input.checkKeyState("1"))
+		ardy->equipItem(SLOT_WEAPON, "Muramasa");
+	if(input.checkKeyState("2"))
+		ardy->equipItem(SLOT_WEAPON, "Buster Sword");
+	if(input.checkKeyState("3"))
+		ardy->equipItem(SLOT_HEAD, "Genji Helm");
+	if(input.checkKeyState("4"))
+		ardy->equipItem(SLOT_TORSO, "Genji Armor");
+	if(input.checkKeyState("5"))
+		ardy->equipItem(SLOT_LEGS, "Hermes Sandals");
+	if(input.checkKeyState("6"))
+		ardy->equipItem(SLOT_ACC1, "Ribbon");
+	if(input.checkKeyState("7"))
+		ardy->equipItem(SLOT_ACC2, "Genji Glove");	
+	if(input.checkKeyState("8"))
+		ardy->equipItem(SLOT_ACC3, "Gauntlet");
+	
+	
+	if(input.checkKeyState("e")) {
+		//elma->print();
+	}
+
+	if(character.x < 0) character.x = 0;
+	if(character.y < 0) character.y = 0;
+	if(character.x + character.w >= level->getWidth() * 32.0f)
+		character.x = level->getWidth() * 32.0f - character.w;
+	if(character.y + character.h >= level->getHeight() * 32.0f)
+		character.y = level->getHeight() * 32.0f - character.h;
+	
+	camera.setCenter(character.getCenterX(), character.getCenterY());
+	
+	if(level->getWidth() * 32.0f >= camera.w) {
+		if(camera.x < 0) camera.x = 0;
+		if(camera.x + camera.w >= level->getWidth() * 32.0f)
+			camera.x = level->getWidth() * 32.0f - camera.w;
+	}
+	
+	if(level->getHeight() * 32.0f >= camera.h) {
+		if(camera.y < 0) camera.y = 0;
+		if(camera.y + camera.h >= level->getHeight() * 32.0f)
+			camera.y = level->getHeight() * 32.0f - camera.h;
+	}
+		
+	Rect characterRelative = {
+		character.x - camera.x,
+		character.y - camera.y,
+		character.w,
+		character.h
+	};
+	
+	level->draw(camera);
+	drawTexture(party.getMember(0)->getExploreTex(), characterRelative, {0, 0, 32, 32}, 2.5);
+
+}

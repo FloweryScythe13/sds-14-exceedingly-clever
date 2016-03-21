@@ -1,0 +1,29 @@
+#ifndef _ANIMATE_
+#define _ANIMATE_
+#include <iostream>
+#include <vector>
+using namespace std;
+#include "rect.h"
+
+class Animation {
+ public:
+	Animation(ifstream& file);
+ 	Rect getFrameRect() const;
+ 	void update();
+
+ protected:
+ unsigned int framew, frameh, framerows, framecolumns;
+ unsigned int framedur;
+ bool oscillate;
+ unsigned int counter;
+ unsigned int frameIndex;
+ std::vector<unsigned int> frames;
+ int frameAdv;
+ bool paused;
+
+ private:
+
+
+};
+
+#endif

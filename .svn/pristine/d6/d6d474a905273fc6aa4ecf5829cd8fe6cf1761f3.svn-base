@@ -1,0 +1,14 @@
+#ifndef _DIRECTION_H
+#define _DIRECTION_H
+
+enum Direction {
+	DIR_UP,
+	DIR_DOWN,
+	DIR_LEFT,
+	DIR_RIGHT,
+	DIR_ACCEPT,
+	DIR_CANCEL,
+	DIR_MAX
+};
+
+#endif

@@ -1,0 +1,6 @@
+#include "menuoptionmap.h"
+
+MenuOptionMap::MenuOptionMap() : up(-1), down(-1), left(-1), right(-1) {}
+
+MenuOptionMap::MenuOptionMap(int up, int down, int left, int right) :
+	up(up), down(down), left(left), right(right) {}

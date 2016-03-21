@@ -1,0 +1,295 @@
+#include <cstdlib>
+#include <cmath>
+#include <iostream>
+#include "animation.h"
+#include "battlestate.h"
+#include "explorationstate.h"
+#include "mainmenustate.h"
+#include "color.h"
+#include "cell.h"
+#include "inputsystem.h"
+#include "npc.h"
+#include "rect.h"
+#include "render.h"
+#include "tiles.h"
+#include "partymember.h"
+#include "equipment.h"
+#include "combatchar.h"
+
+ExplorationState::ExplorationState(InputSystem& input) :
+	GameState(input), level(0), tile(0) {
+	character = Rect{0.0f, 0.0f, 32.0f, 32.0f};
+	camera = Rect{0.0f, 0.0f, 640.0f, 480.0f};
+	
+	level = new Cell("levels/Starter Area");
+
+	ardy = new PartyMember("char/ardy.txt");
+	elma = new PartyMember("char/elma.txt");
+	party.addMember(elma);
+	party.addMember(ardy);
+
+	party.getMember(0)->setAnimation("walk_down");
+	party.getMember(1)->setAnimation("walk_down");
+        
+	elma->addBattleCommand(BattleCommand("Burninate", CMD_ATK_MAGIC, 100, 50, 25));
+	elma->addBattleCommand(BattleCommand("Omnislash", CMD_ATK_MELEE, 5000, 100, 25));
+	ardy->addBattleCommand(BattleCommand("Hadouken", CMD_ATK_MAGIC, 200, 75, 25));
+	ardy->addBattleCommand(BattleCommand("Rain of Arrows", CMD_ATK_PROJECTILE, 100, 80, 25));
+	
+	//Movement stuff
+	characterFacing = CHAR_DIR_NONE;
+	charTileX = 1;
+	charTileY = 1;
+	targetTileX = 0;
+	targetTileY = 0;
+	character = Rect(charTileX * 32.0f, charTileY * 32.0f, 32.0f, 32.0f);
+	charIsMoving = false;
+	charSpeed = 4;
+	finishedMovement = false;
+	
+	font = loadFont("fonts/FFVI.ttf", 32);
+	inConversation = false;
+	dialogueScreen = 0;
+}
+
+ExplorationState::~ExplorationState() {
+	delete level;
+	delete ardy;
+	delete elma;
+}
+
+void ExplorationState::onOpen() {
+	running = true;
+	finished = true;
+}
+
+void ExplorationState::onClose() {
+	nextState = 0;
+}
+
+void ExplorationState::onFrame() {
+	finishedMovement = false;
+
+	if(input.checkKeyState("c", KEYSTATE_TAP)) {
+		nextState = new MainMenuState(input, party);
+		finished = false;
+		running = false;
+		std::cout << "Switching to main menu\n";
+	}
+
+	if(input.checkKeyState("y")) { 
+	  int enemyCount = rand() % 4 + 1;
+		CombatChar** enemies = new CombatChar*[enemyCount];
+		for(int i = 0; i < enemyCount; ++i) {
+			int type = rand() % 4;
+			if(type == 0) enemies[i] = new CombatChar(Character("char/malboro.txt"));
+			if(type == 1) enemies[i] = new CombatChar(Character("char/knight.txt"));
+			if(type == 2) enemies[i] = new CombatChar(Character("char/elma.txt"));
+			if(type == 3) enemies[i] = new CombatChar(Character("char/ardy.txt"));
+		}
+		nextState = new BattleState(input, party,
+			enemies, enemyCount);
+		
+		delete[] enemies;
+		running = false;
+		finished = false;
+
+		std::cout << "Switching to battle mode\n";
+	}
+
+	PartyMember* first = party.getMember(0);
+	if(input.checkKeyState("up", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+		characterFacing = CHAR_DIR_UP;
+	} else if(input.checkKeyState("down", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+		characterFacing = CHAR_DIR_DOWN;
+	} else if(input.checkKeyState("left", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+		characterFacing = CHAR_DIR_LEFT;
+	} else if(input.checkKeyState("right", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+		characterFacing = CHAR_DIR_RIGHT;
+	} else {
+	}
+	
+	if(input.checkKeyState("z")) {
+		if(inConversation) {
+			if(++dialogueScreen >= dialogue.size()) {
+				inConversation = false;
+			} else {
+			}
+		} else {
+			
+		}
+	}
+	
+	movePlayer();
+	party.getMember(0)->getAnimation()->setDuration(8);
+	first->updateAnimation();
+
+	if(character.x < 0) character.x = 0;
+	if(character.y < 0) character.y = 0;
+	if(character.x + character.w >= level->getWidth() * 32.0f)
+		character.x = level->getWidth() * 32.0f - character.w;
+	if(character.y + character.h >= level->getHeight() * 32.0f)
+		character.y = level->getHeight() * 32.0f - character.h;
+	
+	camera.setCenter(character.getCenterX(), character.getCenterY());
+	
+	if(level->getWidth() * 32.0f >= camera.w) {
+		if(camera.x < 0) camera.x = 0;
+		if(camera.x + camera.w >= level->getWidth() * 32.0f)
+			camera.x = level->getWidth() * 32.0f - camera.w;
+	}
+	
+	if(level->getHeight() * 32.0f >= camera.h) {
+		if(camera.y < 0) camera.y = 0;
+		if(camera.y + camera.h >= level->getHeight() * 32.0f)
+			camera.y = level->getHeight() * 32.0f - camera.h;
+	}
+		
+	Rect characterRelative = {
+		character.x - camera.x,
+		character.y - camera.y,
+		character.w,
+		character.h
+	};
+	
+	level->draw(camera);
+	drawTexture(first->getExploreTex(), characterRelative, first->getAnimationRect(), 2.5);
+	if(inConversation && dialogueScreen < dialogue.size()) {
+		Color white;
+		Color blue(204, 204, 255);
+		drawBox(Rect(30, 30, 610, 450), blue);
+		drawText(font, dialogue[dialogueScreen].c_str(), white, 50, 50);
+	}
+}
+
+void ExplorationState::movePlayer() {
+	if(!charIsMoving) {
+		switch(characterFacing) {
+		case CHAR_DIR_NONE:
+			break;
+		case CHAR_DIR_UP:
+			if(!level->getCollision(charTileX, charTileY - 1) &&
+				!level->getNPC(charTileX, charTileY - 1) &&
+				isOnMap(charTileX, charTileY - 1)) {
+				
+				targetTileX = charTileX;
+				targetTileY = charTileY - 1;
+				party.getMember(0)->setAnimation("walk_up");
+				party.getMember(0)->getAnimation()->run();
+				charIsMoving = true;
+			} else {
+				party.getMember(0)->setAnimation("idle_up");
+			}
+			break;
+		case CHAR_DIR_DOWN:
+			if(!level->getCollision(charTileX, charTileY + 1) &&
+				!level->getNPC(charTileX, charTileY + 1) &&
+				isOnMap(charTileX, charTileY + 1)) {
+				
+				targetTileX = charTileX;
+				targetTileY = charTileY + 1;
+				party.getMember(0)->setAnimation("walk_down");
+				party.getMember(0)->getAnimation()->run();
+				charIsMoving = true;
+			} else {
+				party.getMember(0)->setAnimation("idle_down");
+			}
+			break;
+		case CHAR_DIR_LEFT:
+			if(!level->getCollision(charTileX - 1, charTileY) &&
+				!level->getNPC(charTileX - 1, charTileY) &&
+				isOnMap(charTileX - 1, charTileY)) {
+				
+				targetTileX = charTileX - 1;
+				targetTileY = charTileY;
+				party.getMember(0)->setAnimation("walk_left");
+				party.getMember(0)->getAnimation()->run();
+				charIsMoving = true;
+			} else {
+				party.getMember(0)->setAnimation("idle_left");
+			}
+			break;
+		case CHAR_DIR_RIGHT:
+			if(!level->getCollision(charTileX + 1, charTileY) &&
+				!level->getNPC(charTileX + 1, charTileY) &&
+				isOnMap(charTileX + 1, charTileY)) {
+				
+				targetTileX = charTileX + 1;
+				targetTileY = charTileY;
+				party.getMember(0)->setAnimation("walk_right");
+				party.getMember(0)->getAnimation()->run();
+				charIsMoving = true;
+			} else {
+				party.getMember(0)->setAnimation("idle_right");
+			}
+			break;
+		}
+	}
+	
+	if(character.x == 32.0f * targetTileX &&
+			character.y == 32.0f * targetTileY) {
+			
+		charIsMoving = false;
+		charTileX = targetTileX;
+		charTileY = targetTileY;
+			
+		party.getMember(0)->getAnimation()->pause();
+		characterFacing = CHAR_DIR_NONE;
+		finishedMovement = true;
+	}
+	
+	if(charIsMoving) {
+		float pixelDistanceX = targetTileX * 32.0f - character.x;
+		float pixelDistanceY = targetTileY * 32.0f - character.y;
+		float speed = charSpeed;
+		
+		if(pixelDistanceX > 0.0f) {
+			if(speed > pixelDistanceX) speed = pixelDistanceX;
+			character.x += speed;
+		}
+		
+		if(pixelDistanceX < 0.0f) {
+			if(speed > abs(pixelDistanceX)) speed = abs(pixelDistanceX);
+			character.x -= speed;
+		}
+		
+		if(pixelDistanceY > 0.0f) {
+			if(speed > pixelDistanceY) speed = pixelDistanceY;
+			character.y += speed;
+		}
+		
+		if(pixelDistanceY < 0.0f) {
+			if(speed > abs(pixelDistanceY)) speed = abs(pixelDistanceY);
+			character.y -= speed;
+		}
+	}
+}
+
+bool ExplorationState::isOnMap(int tilex, int tiley) const {
+	return (tilex >= 0 && tilex < level->getWidth() && tiley >= 0 && tiley < level->getHeight());
+}
+
+bool ExplorationState::getNPCDialogue(CharDirection dir, std::vector<std::string>& text) {
+	NPC* npc = 0;
+	switch(dir) {
+	case CHAR_DIR_NONE:
+		return false;
+	case CHAR_DIR_UP:
+		npc = level->getNPC(charTileX, charTileY - 1);
+	case CHAR_DIR_DOWN:
+		npc = level->getNPC(charTileX, charTileY + 1);
+		return false;
+	case CHAR_DIR_LEFT:
+		npc = level->getNPC(charTileX - 1, charTileY);
+		return false;
+	case CHAR_DIR_RIGHT:
+		npc = level->getNPC(charTileX + 1, charTileY);
+		return false;
+	
+	}
+	
+	if(!npc) return false;
+	text = npc->getDialogue();
+	if(!text.size()) return false;
+	return true;
+}

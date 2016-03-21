@@ -1,0 +1,65 @@
+#include <iostream>
+#include "direction.h"
+#include "inputsystem.h"
+#include "homescreen.h"
+#include "equipscreen.h"
+#include "statusscreen.h"
+#include "mainmenustate.h"
+#include "render.h"
+
+MainMenuState::MainMenuState(InputSystem& input, Party& party) :
+	GameState(input), party(party) {
+	background = loadTexture("images/menubackground.pam");
+	
+	currentMode = MENU_HOME;
+	for(int i = 0; i < MENU_MAX; ++i) {
+		screen[i] = 0;
+	}
+
+	screen[MENU_HOME] = new HomeScreen(party);
+	screen[MENU_HOME]->show();
+	screen[MENU_STATUS] = new StatusScreen(party);
+	screen[MENU_STATUS]->hide();
+	screen[MENU_EQUIPMENT] = new EquipScreen(party);
+	screen[MENU_EQUIPMENT]->hide();
+	finished = false;
+}
+
+MainMenuState::~MainMenuState() {
+	for(int i = 0; i < MENU_MAX; ++i) {
+		delete screen[i];
+	}
+}
+
+void MainMenuState::onOpen() {
+	running = true;
+	finished = true;
+}
+
+void MainMenuState::onClose() {
+	nextState = 0;
+}
+
+void MainMenuState::onFrame() {
+	if(input.checkKeyState("x") && currentMode == MENU_HOME) {
+		std::cout << "Switching to exploration\n";
+		running = false;
+	}
+
+	screen[currentMode]->handleInput(input);
+	MenuMode nextMode = screen[currentMode]->getNextMode();
+	if(nextMode != currentMode) {
+		if(!screen[nextMode]) {
+			screen[currentMode]->resetMode();
+		} else {
+			screen[currentMode]->hide();
+			screen[currentMode]->resetMode();
+			currentMode = nextMode;
+			screen[currentMode]->show();
+			screen[currentMode]->resetMode();
+		}
+	}
+
+	drawTexture(background, {0, 0, 640, 480}, {0, 0, 640, 480}, 10);
+	screen[currentMode]->draw();
+}

@@ -1,0 +1,11 @@
+#ifndef _MENUOPTIONMAP_H
+#define _MENUOPTIONMAP_H
+
+struct MenuOptionMap {
+	MenuOptionMap();
+	MenuOptionMap(int up, down, left, right);
+
+	int up, down, left, right;
+};
+
+#endif

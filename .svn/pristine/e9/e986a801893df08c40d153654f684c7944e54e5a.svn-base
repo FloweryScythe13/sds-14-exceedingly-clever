@@ -1,0 +1,101 @@
+#include <iostream>
+#include <stdlib.h>
+#include <GL/gl.h>
+#include "render.h"
+
+unsigned int roundPowerTwo(unsigned int num) {
+	--num;
+	num |= num >> 1;
+	num |= num >> 2;
+	num |= num >> 4;
+	num |= num >> 8;
+	num |= num >> 16;
+	++num;
+	
+	return num;
+}
+
+void drawText(const Font* font, const char* text,
+	float x, float y, float z, float sx, float sy) {
+	
+	if(!font || !text || !font->getTexture()) return;
+	
+	float offsetx = x;
+	float offsety = y;
+	for(int i = 0; text[i]; ++i) {
+		float advx, advy, bitmapw, bitmaph, bitmapleft, bitmaptop, offset;
+		font->getGlyphMetrics(text[i], &advx, &advy, &bitmapw, &bitmaph,
+			&bitmapleft, &bitmaptop, &offset);
+			
+		float w = bitmapw * sx;
+		float h = bitmaph * sy;
+		
+		if(text[i] == '\n') {
+			offsetx = x;
+			offsety += font->getMaxHeight() * sy;
+		} else if(text[i] == '\t') {
+			float temp;
+			font->getGlyphMetrics(' ', &temp, 0, 0, 0, 0, 0, 0);
+			offsetx += 5.0f * temp * sx;
+			offsety += 5.0f * temp * sy;
+		} else {
+			if(w && h) {
+				Rect pos = {
+					offsetx,
+					offsety + font->getMaxHeight() * sy - bitmaptop * sy,
+					w, h
+				};
+				
+				Rect texcoord = {offset, 0.0f, bitmapw, bitmaph};
+				
+				unsigned int w2 = roundPowerTwo(font->getMaxWidth());
+				unsigned int h2 = roundPowerTwo(font->getMaxHeight());
+				
+				float texleft = texcoord.x / w2;
+				float texright = (texcoord.x + texcoord.w) / w2;
+				float textop = texcoord.y / h2;
+				float texbottom = (texcoord.y + texcoord.h) / h2;
+				
+				//Draw
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, font->getTexture());
+				
+				glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+				
+				glBegin(GL_QUADS);
+					glTexCoord2f(texleft, textop);
+					glVertex3f(pos.x, pos.y, z);
+					glTexCoord2f(texleft, texbottom);
+					glVertex3f(pos.x, pos.y + pos.h, z);
+					glTexCoord2f(texright, texbottom);
+					glVertex3f(pos.x + pos.w, pos.y + pos.h, z);
+					glTexCoord2f(texright, textop);
+					glVertex3f(pos.x + pos.w, pos.y, z);
+				glEnd();
+				glDisable(GL_TEXTURE_2D);
+			}
+			
+			offsetx += advx * sx;
+			offsety += advy * sy;
+		}
+	}
+}
+
+void drawBox(Rect rect, double z) {
+	glBegin(GL_QUADS);
+		glVertex3f(rect.x, rect.y, z);
+		glVertex3f(rect.x, rect.y + rect.h, z);
+		glVertex3f(rect.x + rect.w, rect.y + rect.h, z);
+		glVertex3f(rect.x + rect.w, rect.y, z);
+	glEnd();
+}
+
+void drawBox(Rect rect, Color c, double z) {
+	glColor4f(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f);
+	glBegin(GL_QUADS);
+		glVertex3f(rect.x, rect.y, z);
+		glVertex3f(rect.x, rect.y + rect.h, z);
+		glVertex3f(rect.x + rect.w, rect.y + rect.h, z);
+		glVertex3f(rect.x + rect.w, rect.y, z);
+	glEnd();
+}

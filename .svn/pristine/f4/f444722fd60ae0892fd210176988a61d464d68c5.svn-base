@@ -1,0 +1,148 @@
+#include <cstdlib>
+#include <iostream>
+#include "animation.h"
+#include "battlestate.h"
+#include "explorationstate.h"
+#include "mainmenustate.h"
+#include "color.h"
+#include "cell.h"
+#include "inputsystem.h"
+#include "rect.h"
+#include "render.h"
+#include "tiles.h"
+#include "partymember.h"
+#include "equipment.h"
+#include "combatchar.h"
+
+ExplorationState::ExplorationState(InputSystem& input) :
+	GameState(input), level(0), tile(0) {
+	character = Rect{0.0f, 0.0f, 32.0f, 32.0f};
+	camera = Rect{0.0f, 0.0f, 640.0f, 480.0f};
+	
+	//tile = new Tilesheet("images/test.pam");
+	level = new Cell("levels/test");
+
+	ardy = new PartyMember("char/ardy.txt");
+	elma = new PartyMember("char/elma.txt");
+	party.addMember(elma);
+	party.addMember(ardy);
+	party.addMember(new PartyMember("char/elma.txt"));
+	party.addMember(new PartyMember("char/elma.txt"));
+	party.addMember(new PartyMember("char/elma.txt"));
+	party.addMember(new PartyMember("char/elma.txt"));
+	party.addMember(new PartyMember("char/elma.txt"));
+	party.addMember(new PartyMember("char/elma.txt"));
+	party.addMember(new PartyMember("char/elma.txt"));
+	party.addMember(new PartyMember("char/elma.txt"));
+	
+	party.getMember(0)->setAnimation("walk_down");
+	party.getMember(1)->setAnimation("walk_down");
+        
+	elma->addBattleCommand(BattleCommand("Burninate", CMD_ATK_MAGIC, 100, 50, 25));
+	elma->addBattleCommand(BattleCommand("Omnislash", CMD_ATK_MELEE, 5000, 100, 25));
+	ardy->addBattleCommand(BattleCommand("Hadouken", CMD_ATK_MAGIC, 200, 75, 25));
+	ardy->addBattleCommand(BattleCommand("Rain of Arrows", CMD_ATK_PROJECTILE, 100, 80, 25));
+}
+
+ExplorationState::~ExplorationState() {
+	delete level;
+	//delete tile;
+	delete ardy;
+	delete elma;
+}
+
+void ExplorationState::onOpen() {
+	running = true;
+	finished = true;
+}
+
+void ExplorationState::onClose() {
+	nextState = 0;
+}
+
+void ExplorationState::onFrame() {
+	if(input.checkKeyState("c", KEYSTATE_TAP)) {
+		nextState = new MainMenuState(input, party);
+		finished = false;
+		running = false;
+		std::cout << "Switching to main menu\n";
+	}
+
+	if(input.checkKeyState("y")) { 
+	  int enemyCount = rand() % 4 + 1;
+		CombatChar** enemies = new CombatChar*[enemyCount];
+		for(int i = 0; i < enemyCount; ++i) {
+			int type = rand() % 4;
+			if(type == 0) enemies[i] = new CombatChar(Character("char/malboro.txt"));
+			if(type == 1) enemies[i] = new CombatChar(Character("char/knight.txt"));
+			if(type == 2) enemies[i] = new CombatChar(Character("char/elma.txt"));
+			if(type == 3) enemies[i] = new CombatChar(Character("char/ardy.txt"));
+		}
+		nextState = new BattleState(input, party,
+			enemies, enemyCount);
+		
+		delete[] enemies;
+		running = false;
+		finished = false;
+
+		std::cout << "Switching to battle mode\n";
+	}
+
+	PartyMember* first = party.getMember(0);
+	if(input.checkKeyState("up", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+		character.y -= 5;
+		party.getMember(0)->setAnimation("walk_up");
+		first->updateAnimation();
+	}
+	if(input.checkKeyState("down", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+		character.y += 5;
+		first->setAnimation("walk_down");
+		first->updateAnimation();
+	}
+	if(input.checkKeyState("left", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+		character.x -= 5;
+		first->setAnimation("walk_left");
+		first->updateAnimation();
+	}
+	if(input.checkKeyState("right", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+		character.x += 5;
+		first->setAnimation("walk_right");
+		first->updateAnimation();
+	}
+	
+	if(input.checkKeyState("e")) {
+		//first->print();
+	}
+
+	if(character.x < 0) character.x = 0;
+	if(character.y < 0) character.y = 0;
+	if(character.x + character.w >= level->getWidth() * 32.0f)
+		character.x = level->getWidth() * 32.0f - character.w;
+	if(character.y + character.h >= level->getHeight() * 32.0f)
+		character.y = level->getHeight() * 32.0f - character.h;
+	
+	camera.setCenter(character.getCenterX(), character.getCenterY());
+	
+	if(level->getWidth() * 32.0f >= camera.w) {
+		if(camera.x < 0) camera.x = 0;
+		if(camera.x + camera.w >= level->getWidth() * 32.0f)
+			camera.x = level->getWidth() * 32.0f - camera.w;
+	}
+	
+	if(level->getHeight() * 32.0f >= camera.h) {
+		if(camera.y < 0) camera.y = 0;
+		if(camera.y + camera.h >= level->getHeight() * 32.0f)
+			camera.y = level->getHeight() * 32.0f - camera.h;
+	}
+		
+	Rect characterRelative = {
+		character.x - camera.x,
+		character.y - camera.y,
+		character.w,
+		character.h
+	};
+	
+	level->draw(camera);
+	drawTexture(first->getExploreTex(), characterRelative, first->getAnimationRect(), 2.5);
+
+}

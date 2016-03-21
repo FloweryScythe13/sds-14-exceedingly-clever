@@ -1,0 +1,31 @@
+#ifndef _CELL_
+#define _CELL_
+
+#include <string>
+
+struct Rect;
+class Tilesheet;
+class Cell {
+	int width, height;
+	static const int CELL_MAX_LAYER = 3, CELL_MAX_WIDTH = 200,
+		CELL_MAX_HEIGHT = 200;
+		
+	unsigned short int tiles[CELL_MAX_LAYER][CELL_MAX_HEIGHT][CELL_MAX_WIDTH];
+	int solids[CELL_MAX_HEIGHT][CELL_MAX_WIDTH];
+	Tilesheet* ptile;
+
+	std::string directory;
+	std::string name;
+
+ public:
+	Cell(std::string directory);
+	~Cell();
+
+	int getWidth() const {return width;}
+	int getHeight() const {return height;}
+	
+	void draw(const Rect& camera);
+
+};
+
+#endif

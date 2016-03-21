@@ -1,0 +1,29 @@
+#ifndef _PARTYMEMBER_H
+#define _PARTYMEMBER_H
+
+#include "character.h"
+
+class PartyMember : public Character {
+public:
+	PartyMember(std::string filename);
+	PartyMember(std::ifstream& file);
+	~PartyMember();
+
+	int getExploreTex() const {return exploreTex;}
+	int getFaceTex() const {return faceTex;}
+	int getPortraitTex() const {return portraitTex;}
+
+	void setExploreTex(int t) {exploreTex = t;}
+	void setFaceTex(int t) {faceTex = t;}
+	void setPortraitTex(int t) {portraitTex = t;}
+
+protected:
+	int exploreTex;
+	int faceTex;
+	int portraitTex;
+
+private:
+
+};
+
+#endif

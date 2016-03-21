@@ -1,0 +1,94 @@
+#include <iostream>
+#include "explorationstate.h"
+#include "mainmenustate.h"
+#include "cell.h"
+#include "inputsystem.h"
+#include "render.h"
+#include "tiles.h"
+
+ExplorationState::ExplorationState(InputSystem& input) :
+	GameState(input), level(0), tile(0) {
+	character = Rect{0.0f, 0.0f, 32.0f, 32.0f};
+	camera = Rect{0.0f, 0.0f, 640.0f, 480.0f};
+	characterColor = Color{255, 0, 255, 255};
+	
+	tile = new Tilesheet("images/test.pam");
+	level = new Cell(tile, "levels/test.txt");
+}
+
+ExplorationState::~ExplorationState() {
+	delete level;
+	delete tile;
+}
+
+void ExplorationState::onOpen() {
+	running = true;
+	finished = true;
+}
+
+void ExplorationState::onClose() {
+	nextState = 0;
+}
+
+void ExplorationState::onFrame() {
+	if(input.checkKeyState("x", KEYSTATE_TAP)) {
+		nextState = new MainMenuState(input);
+		finished = false;
+		running = false;
+		std::cout << "Switching to main menu\n";
+	}
+	
+	if(input.checkKeyState("a", KEYSTATE_TAP)) {
+		delete level;
+		level = new Cell(tile, "levels/test.txt");
+	}
+	
+	if(input.checkKeyState("s", KEYSTATE_TAP)) {
+		delete level;
+		level = new Cell(tile, "levels/test2.txt");
+	}
+	
+	if(input.checkKeyState("up", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+		character.y -= 5;
+	}
+	if(input.checkKeyState("down", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+		character.y += 5;
+	}
+	if(input.checkKeyState("left", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+		character.x -= 5;
+	}
+	if(input.checkKeyState("right", KEYSTATE_DOWN | KEYSTATE_TAP)) {
+		character.x += 5;
+	}
+	
+	if(character.x < 0) character.x = 0;
+	if(character.y < 0) character.y = 0;
+	if(character.x + character.w >= level->getWidth() * 32.0f)
+		character.x = level->getWidth() * 32.0f - character.w;
+	if(character.y + character.h >= level->getHeight() * 32.0f)
+		character.y = level->getHeight() * 32.0f - character.h;
+	
+	camera.setCenter(character.getCenterX(), character.getCenterY());
+	
+	if(level->getWidth() * 32.0f >= camera.w) {
+		if(camera.x < 0) camera.x = 0;
+		if(camera.x + camera.w >= level->getWidth() * 32.0f)
+			camera.x = level->getWidth() * 32.0f - camera.w;
+	}
+	
+	if(level->getHeight() * 32.0f >= camera.h) {
+		if(camera.y < 0) camera.y = 0;
+		if(camera.y + camera.h >= level->getHeight() * 32.0f)
+			camera.y = level->getHeight() * 32.0f - camera.h;
+	}
+		
+	Rect characterRelative = {
+		character.x - camera.x,
+		character.y - camera.y,
+		character.w,
+		character.h
+	};
+	
+	drawBox(characterRelative, characterColor, 2.5);
+	level->draw(camera);
+}

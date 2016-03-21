@@ -1,0 +1,26 @@
+#ifndef _NPC_
+#define _NPC_
+#include<iostream>
+#include<vector>
+#include "rect.h"
+#include "character.h"
+using namespace std;
+
+class NPC: public Character {
+  
+ public:
+  NPC(string filename);
+  NPC() {}
+  string getDialogue(int i) {
+    return dialogue[i];
+  }
+  Rect getPosition() {return position;}
+ protected:
+  Rect position;
+  vector<string> dialogue;
+  bool playerAdjac;
+};
+
+
+#endif 
+
